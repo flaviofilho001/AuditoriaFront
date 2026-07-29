@@ -3,7 +3,7 @@ import { Search, ShieldAlert, FileCode, CheckCircle, Code, Layers, AlertCircle }
 
 interface MockFinding {
   id: string;
-  rule_id: str;
+  rule_id: string;
   title: string;
   severity: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
   file: string;
@@ -22,7 +22,6 @@ export const ScannerTab: React.FC = () => {
 
   const handleStartScan = () => {
     setIsScanning(true);
-    // Simulação do escaneamento de demonstração da Fase 1
     setTimeout(() => {
       setFindings([
         {
@@ -132,10 +131,10 @@ export const ScannerTab: React.FC = () => {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                   <div>
                     <span className={`badge badge-${f.severity.toLowerCase()}`} style={{ marginRight: '8px' }}>{f.severity}</span>
-                    <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)', className: 'code-font' }}>{f.rule_id}</span>
+                    <span className="code-font" style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>{f.rule_id}</span>
                     <h4 style={{ fontSize: '1.05rem', fontWeight: 700, marginTop: '4px' }}>{f.title}</h4>
                   </div>
-                  <span style={{ fontSize: '0.8rem', background: 'rgba(255,255,255,0.05)', padding: '4px 10px', borderRadius: '6px', border: '1px solid var(--border-color)' }} className="code-font">
+                  <span className="code-font" style={{ fontSize: '0.8rem', background: 'rgba(255,255,255,0.05)', padding: '4px 10px', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
                     {f.file}:{f.line}
                   </span>
                 </div>
@@ -145,7 +144,7 @@ export const ScannerTab: React.FC = () => {
                 </p>
 
                 {/* Code Snippet Box */}
-                <div style={{ background: 'rgba(0,0,0,0.5)', padding: '12px', borderRadius: '6px', border: '1px solid var(--border-color)', marginBottom: '12px' }} className="code-font">
+                <div className="code-font" style={{ background: 'rgba(0,0,0,0.5)', padding: '12px', borderRadius: '6px', border: '1px solid var(--border-color)', marginBottom: '12px' }}>
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginBottom: '4px' }}>Trecho de Código Afetado:</div>
                   <code style={{ color: 'var(--accent-cyan)', fontSize: '0.85rem' }}>{f.snippet}</code>
                 </div>

@@ -182,12 +182,12 @@ export const LLMBenchTab: React.FC = () => {
             <span style={{ fontWeight: 700, color: 'var(--accent-emerald)', display: 'flex', alignItems: 'center', gap: '6px' }}>
               <CheckCircle2 size={18} /> Resposta Recebida com Sucesso
             </span>
-            <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)', className: 'code-font' }}>
+            <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }} className="code-font">
               Provedor: {result.health.provider} ({result.health.model || result.health.current_model || 'N/A'})
             </span>
           </div>
 
-          <div style={{ background: 'rgba(0,0,0,0.4)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border-color)', whiteSpace: 'pre-wrap', fontSize: '0.9rem', lineHeight: '1.6' }} className="code-font">
+          <div className="code-font" style={{ background: 'rgba(0,0,0,0.4)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border-color)', whiteSpace: 'pre-wrap', fontSize: '0.9rem', lineHeight: '1.6' }}>
             {result.response}
           </div>
         </div>

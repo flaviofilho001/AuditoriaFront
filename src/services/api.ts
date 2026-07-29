@@ -1,4 +1,6 @@
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://auditoriaback-production.up.railway.app';
+/// <reference path="../vite-env.d.ts" />
+
+const BACKEND_URL = (import.meta as any).env?.VITE_BACKEND_URL || 'https://auditoriaback-production.up.railway.app';
 
 export interface HealthResponse {
   status: string;
@@ -22,6 +24,7 @@ export interface LLMTestResponse {
     status: string;
     provider: string;
     model?: string;
+    current_model?: string;
     max_rpm?: number;
     available_models?: string[];
     message?: string;
