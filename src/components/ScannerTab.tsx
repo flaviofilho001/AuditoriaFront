@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Upload, GitBranch, Search, ShieldAlert, FileCode, CheckCircle2, 
   AlertTriangle, RefreshCw, Key, Layers, Cpu, FileArchive, ArrowRight,
-  Download, FileText, Code
+  Download, FileText, Code, Globe
 } from 'lucide-react';
 import { api, AuditScanResult, VulnerabilityFinding } from '../services/api';
 
@@ -21,7 +21,27 @@ export const ScannerTab: React.FC = () => {
   // Configurações Globais do Escaneamento
   const [provider, setProvider] = useState<'gemini' | 'ollama'>('gemini');
   const [apiKey, setApiKey] = useState('');
+  const [ollamaUrl, setOllamaUrl] = useState('http://localhost:11434');
   const [useAi, setUseAi] = useState(true);
+
+  // Carrega chave do localStorage ao iniciar
+  useEffect(() => {
+    const savedKey = localStorage.getItem('gemini_api_key');
+    if (savedKey) setApiKey(savedKey);
+    const savedOllama = localStorage.getItem('ollama_url');
+    if (savedOllama) setOllamaUrl(savedOllama);
+  }, []);
+
+  // Salva no localStorage quando alterado
+  const handleApiKeyChange = (val: string) => {
+    setApiKey(val);
+    localStorage.setItem('gemini_api_key', val);
+  };
+
+  const handleOllamaUrlChange = (val: string) => {
+    setOllamaUrl(val);
+    localStorage.setItem('ollama_url', val);
+  };
 
   // Estados do Scanner e Resultados
   const [isScanning, setIsScanning] = useState(false);
@@ -72,7 +92,7 @@ export const ScannerTab: React.FC = () => {
           selectedFile,
           provider,
           apiKey || undefined,
-          undefined,
+          ollamaUrl || undefined,
           undefined,
           useAi
         );
@@ -86,6 +106,7 @@ export const ScannerTab: React.FC = () => {
           access_token: gitToken || undefined,
           provider,
           api_key: apiKey || undefined,
+          ollama_base_url: ollamaUrl || undefined,
           use_ai: useAi
         });
       }
@@ -143,7 +164,7 @@ export const ScannerTab: React.FC = () => {
           <Search color="var(--accent-indigo)" /> Auditoria de Conformidade GRC
         </h2>
         <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', marginBottom: '20px' }}>
-          Escolha como deseja enviar o código da sua API para ser auditado pela AST, GraphRAG e pela IA (<code>gemini-3.5-flash</code> com 14 RPM / Ollama).
+          Escolha como deseja enviar o código da sua API para ser auditado pela AST, GraphRAG e pela IA (<code>gemini-1.5-flash</code> com 14 RPM / Ollama).
         </p>
 
         {/* Abas ZIP vs Git */}
@@ -287,27 +308,68 @@ export const ScannerTab: React.FC = () => {
 
         {/* Configurações Adicionais de IA */}
         <div style={{ background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '10px', border: '1px solid var(--border-color)', marginBottom: '20px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>Provedor IA:</label>
-              <select value={provider} onChange={(e) => setProvider(e.target.value as any)}>
-                <option value="gemini">Google Gemini (gemini-3.5-flash)</option>
-                <option value="ollama">Ollama Local (http://localhost:11434)</option>
-              </select>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>Provedor IA:</label>
+                <select value={provider} onChange={(e) => setProvider(e.target.value as any)}>
+                  <option value="gemini">Google Gemini (gemini-1.5-flash)</option>
+                  <option value="ollama">Ollama (Servidor Local ou Ngrok)</option>
+                </select>
+              </div>
+              
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <input
+                  type="checkbox"
+                  id="use-ai-check"
+                  checked={useAi}
+                  onChange={(e) => setUseAi(e.target.checked)}
+                  style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                />
+                <label htmlFor="use-ai-check" style={{ fontSize: '0.85rem', cursor: 'pointer', fontWeight: 500 }}>
+                  Habilitar Resumo Executivo da IA
+                </label>
+              </div>
             </div>
-            
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <input
-                type="checkbox"
-                id="use-ai-check"
-                checked={useAi}
-                onChange={(e) => setUseAi(e.target.checked)}
-                style={{ width: '16px', height: '16px', cursor: 'pointer' }}
-              />
-              <label htmlFor="use-ai-check" style={{ fontSize: '0.85rem', cursor: 'pointer', fontWeight: 500 }}>
-                Habilitar Resumo Executivo da IA
-              </label>
-            </div>
+
+            {/* Input da Chave do Gemini com Persistência */}
+            {provider === 'gemini' && (
+              <div>
+                <label style={{ fontSize: '0.82rem', fontWeight: 600, display: 'block', marginBottom: '4px', color: 'var(--accent-indigo)' }}>
+                  Sua Gemini API Key (Salva no navegador):
+                </label>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <Key size={16} style={{ alignSelf: 'center', color: 'var(--text-dim)' }} />
+                  <input
+                    type="password"
+                    placeholder="Cole sua API Key do Google Gemini (ex: AIzaSy...)"
+                    value={apiKey}
+                    onChange={(e) => handleApiKeyChange(e.target.value)}
+                    style={{ flex: 1, fontSize: '0.85rem' }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Input da URL do Ollama com Aviso Ngrok */}
+            {provider === 'ollama' && (
+              <div>
+                <label style={{ fontSize: '0.82rem', fontWeight: 600, display: 'block', marginBottom: '4px', color: 'var(--accent-cyan)' }}>
+                  Ollama Base URL:
+                </label>
+                <input
+                  type="text"
+                  placeholder="http://localhost:11434 ou https://xxx.ngrok-free.app"
+                  value={ollamaUrl}
+                  onChange={(e) => handleOllamaUrlChange(e.target.value)}
+                  style={{ width: '100%', fontSize: '0.85rem' }}
+                />
+                <div style={{ fontSize: '0.78rem', color: 'var(--accent-amber)', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Globe size={14} />
+                  <span><strong>Nota para deploy na nuvem:</strong> Para o backend no Railway se conectar ao seu Ollama local, exponha a porta rodando <code>ngrok http 11434</code> e cola a URL pública do Ngrok acima.</span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -329,7 +391,7 @@ export const ScannerTab: React.FC = () => {
       {error && (
         <div className="glass-card" style={{ padding: '16px', borderLeft: '4px solid var(--accent-rose)', marginBottom: '24px' }}>
           <div style={{ color: 'var(--accent-rose)', fontWeight: 700, marginBottom: '4px' }}>Erro ao Executar Auditoria</div>
-          <div style={{ fontSize: '0.88rem', color: 'var(--text-muted)' }}>{error}</div>
+          <div style={{ fontSize: '0.88rem', color: 'var(--text-muted)', whiteSpace: 'pre-wrap' }}>{error}</div>
         </div>
       )}
 
@@ -398,7 +460,7 @@ export const ScannerTab: React.FC = () => {
           {scanResult.summary.ai_executive_summary && (
             <div className="glass-card" style={{ padding: '24px', borderLeft: '4px solid var(--accent-indigo)', marginBottom: '24px' }}>
               <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '12px', color: 'var(--accent-indigo)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Cpu size={20} /> Resumo Executivo da IA (gemini-3.5-flash / GraphRAG)
+                <Cpu size={20} /> Resumo Executivo da IA (gemini-1.5-flash / GraphRAG)
               </h3>
               <div className="code-font" style={{ fontSize: '0.9rem', lineHeight: '1.6', whiteSpace: 'pre-wrap', color: 'var(--text-main)', background: 'rgba(0,0,0,0.3)', padding: '16px', borderRadius: '8px' }}>
                 {scanResult.summary.ai_executive_summary}
