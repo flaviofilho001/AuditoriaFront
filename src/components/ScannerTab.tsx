@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { 
   Upload, GitBranch, Search, ShieldAlert, FileCode, CheckCircle2, 
-  AlertTriangle, RefreshCw, Key, Layers, Cpu, FileArchive, ArrowRight
+  AlertTriangle, RefreshCw, Key, Layers, Cpu, FileArchive, ArrowRight,
+  Download, FileText, Code
 } from 'lucide-react';
 import { api, AuditScanResult, VulnerabilityFinding } from '../services/api';
 
@@ -27,6 +28,7 @@ export const ScannerTab: React.FC = () => {
   const [scanResult, setScanResult] = useState<AuditScanResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [activeSeverityFilter, setActiveSeverityFilter] = useState<string>('ALL');
+  const [isExporting, setIsExporting] = useState<boolean>(false);
 
   const handleFileDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -93,6 +95,37 @@ export const ScannerTab: React.FC = () => {
       setError(err.message || 'Falha ao executar a auditoria.');
     } finally {
       setIsScanning(false);
+    }
+  };
+
+  const handleDownloadReport = async (format: 'html' | 'markdown' | 'sarif') => {
+    if (!scanResult) return;
+    setIsExporting(true);
+    try {
+      const reportData = await api.exportReport(scanResult, format);
+      
+      let blob: Blob;
+      let filename = `relatorio_conformidade_${format}.${format === 'markdown' ? 'md' : format}`;
+
+      if (format === 'sarif') {
+        const jsonStr = JSON.stringify(reportData, null, 2);
+        blob = new Blob([jsonStr], { type: 'application/json' });
+      } else {
+        blob = reportData as Blob;
+      }
+
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err: any) {
+      alert(`Erro ao baixar relatório: ${err.message}`);
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -303,6 +336,41 @@ export const ScannerTab: React.FC = () => {
       {/* Resultados do Escaneamento */}
       {scanResult && (
         <div>
+          {/* Barra de Ações e Exportação de Relatórios */}
+          <div className="glass-card" style={{ padding: '16px 24px', marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+            <div style={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Download color="var(--accent-cyan)" size={20} />
+              <span>Exportar Relatórios GRC:</span>
+            </div>
+
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <button
+                className="btn-secondary"
+                onClick={() => handleDownloadReport('html')}
+                disabled={isExporting}
+                style={{ fontSize: '0.82rem' }}
+              >
+                <FileText size={15} color="var(--accent-emerald)" /> Relatório Executivo (HTML)
+              </button>
+              <button
+                className="btn-secondary"
+                onClick={() => handleDownloadReport('markdown')}
+                disabled={isExporting}
+                style={{ fontSize: '0.82rem' }}
+              >
+                <FileCode size={15} color="var(--accent-indigo)" /> Comentário PR (Markdown)
+              </button>
+              <button
+                className="btn-secondary"
+                onClick={() => handleDownloadReport('sarif')}
+                disabled={isExporting}
+                style={{ fontSize: '0.82rem' }}
+              >
+                <Code size={15} color="var(--accent-amber)" /> GitHub Security (SARIF)
+              </button>
+            </div>
+          </div>
+
           {/* Cards com Métricas Gerais */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '24px' }}>
             <div className="glass-card" style={{ padding: '16px', textAlign: 'center' }}>

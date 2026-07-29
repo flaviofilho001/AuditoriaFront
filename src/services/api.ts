@@ -166,5 +166,25 @@ export const api = {
     }
 
     return res.json();
+  },
+
+  exportReport: async (scanResult: AuditScanResult, format: 'html' | 'markdown' | 'sarif'): Promise<Blob | object> => {
+    const res = await fetch(`${BACKEND_URL}/api/v1/report/export`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ scan_result: scanResult, format }),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Erro ao exportar relatório em formato ${format}`);
+    }
+
+    if (format === 'sarif') {
+      return res.json();
+    } else {
+      const text = await res.text();
+      const mimeType = format === 'html' ? 'text/html' : 'text/markdown';
+      return new Blob([text], { type: mimeType });
+    }
   }
 };
