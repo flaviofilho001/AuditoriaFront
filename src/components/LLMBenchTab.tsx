@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Cpu, Key, AlertTriangle, Send, CheckCircle2, RefreshCw, Database } from 'lucide-react';
+import { Cpu, Key, AlertTriangle, Send, CheckCircle2, RefreshCw, Database, Globe, Terminal } from 'lucide-react';
 import { api, LLMTestResponse } from '../services/api';
 
 export const LLMBenchTab: React.FC = () => {
@@ -163,15 +163,32 @@ export const LLMBenchTab: React.FC = () => {
 
         {/* Options for Ollama */}
         {provider === 'ollama' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px', background: 'rgba(0,0,0,0.2)', padding: '16px', borderRadius: '10px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '20px', background: 'rgba(0,0,0,0.2)', padding: '16px', borderRadius: '10px' }}>
+            
+            {/* INSTRUÇÕES DO LOCALTUNNEL */}
+            <div style={{ background: 'rgba(6, 182, 212, 0.08)', border: '1px solid var(--accent-cyan)', borderRadius: '8px', padding: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: 'var(--accent-cyan)', fontWeight: 700, fontSize: '0.9rem' }}>
+                <Globe size={18} /> Como conectar a nuvem ao seu Ollama local?
+              </div>
+              <div style={{ fontSize: '0.85rem', color: 'var(--text-main)', lineHeight: '1.6' }}>
+                Abra o <strong>Terminal ou PowerShell</strong> no seu computador e cole o comando abaixo:
+              </div>
+              <div className="code-font" style={{ background: 'rgba(0,0,0,0.5)', padding: '10px 14px', borderRadius: '6px', margin: '8px 0', display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--accent-emerald)', border: '1px solid var(--border-color)' }}>
+                <Terminal size={16} /> <span>npx localtunnel --port 11434</span>
+              </div>
+              <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                Ele vai gerar um link (ex: <code>https://algo.loca.lt</code>). Copie e cole esse link no campo <strong>Base URL</strong> logo abaixo e clique em Detectar!
+              </div>
+            </div>
+
             <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 2.5fr', gap: '12px' }}>
               <div>
                 <label style={{ fontSize: '0.82rem', fontWeight: 600, display: 'block', marginBottom: '4px', color: 'var(--accent-cyan)' }}>
-                  Base URL (Ngrok ou Localhost):
+                  Base URL (Cole o link do LocalTunnel aqui):
                 </label>
                 <input
                   type="text"
-                  placeholder="https://sua-url.ngrok-free.app"
+                  placeholder="https://sua-url.loca.lt"
                   value={ollamaUrl}
                   onChange={(e) => handleOllamaUrlChange(e.target.value)}
                   style={{ width: '100%', fontSize: '0.85rem' }}
@@ -218,14 +235,14 @@ export const LLMBenchTab: React.FC = () => {
               {ollamaDetectError ? (
                 <div style={{ color: 'var(--accent-rose)', display: 'flex', gap: '6px', alignItems: 'flex-start' }}>
                   <AlertTriangle size={14} style={{ flexShrink: 0, marginTop: '2px' }} />
-                  <span>{ollamaDetectError} <br />👉 Dica: Se o seu backend está na nuvem (Railway), <strong>substitua 'http://localhost:11434' pela URL gerada pelo Ngrok (ex: https://abc.ngrok-free.app)</strong> para que a nuvem consiga listar e acessar o Ollama do seu computador!</span>
+                  <span>{ollamaDetectError} <br />Siga os passos do LocalTunnel no quadro azul acima para liberar o acesso!</span>
                 </div>
               ) : detectedOllamaModels.length > 0 ? (
                 <span style={{ color: 'var(--accent-emerald)', fontWeight: 600, display: 'flex', gap: '6px', alignItems: 'center' }}>
-                  <CheckCircle2 size={14} /> {detectedOllamaModels.length} modelo(s) encontrado(s) via proxy!
+                  <CheckCircle2 size={14} /> {detectedOllamaModels.length} modelo(s) encontrado(s)! Tudo pronto.
                 </span>
               ) : (
-                <span>Insira sua URL (ex: Ngrok) e clique em Detectar para listar seus modelos do Ollama.</span>
+                <span>Insira sua URL do LocalTunnel e clique em Detectar para listar seus modelos.</span>
               )}
             </div>
           </div>
