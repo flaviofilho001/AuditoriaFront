@@ -125,15 +125,22 @@ export const api = {
   },
 
   /**
-   * Detecta diretamente pelo navegador os modelos instalados no Ollama do usuário!
+   * Detecta os modelos do Ollama usando o Proxy do Backend para evitar erros de CORS no navegador
    */
   detectLocalOllamaModels: async (baseUrl: string = 'http://localhost:11434'): Promise<string[]> => {
-    const cleanUrl = baseUrl.replace(/\/$/, '');
-    const res = await fetch(`${cleanUrl}/api/tags`);
-    if (!res.ok) throw new Error('Não foi possível conectar ao Ollama local.');
+    const res = await fetch(`${BACKEND_URL}/api/v1/llm/ollama/models`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ollama_base_url: baseUrl })
+    });
+    
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: 'Erro desconhecido' }));
+      throw new Error(err.detail || 'Não foi possível conectar ao Ollama');
+    }
+    
     const data = await res.json();
-    const models = data.models || [];
-    return models.map((m: any) => m.name);
+    return data.models || [];
   },
 
   /**

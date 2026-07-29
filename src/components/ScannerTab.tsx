@@ -25,6 +25,7 @@ export const ScannerTab: React.FC = () => {
   const [ollamaModel, setOllamaModel] = useState('gemma:2b');
   const [detectedOllamaModels, setDetectedOllamaModels] = useState<string[]>([]);
   const [isDetectingOllama, setIsDetectingOllama] = useState(false);
+  const [ollamaDetectError, setOllamaDetectError] = useState<string | null>(null);
   const [useAi, setUseAi] = useState(true);
 
   // Carrega chave e auto-detecta Ollama ao iniciar
@@ -40,14 +41,16 @@ export const ScannerTab: React.FC = () => {
 
   const autoDetectOllama = async (urlToTest: string) => {
     setIsDetectingOllama(true);
+    setOllamaDetectError(null);
     try {
       const models = await api.detectLocalOllamaModels(urlToTest);
       setDetectedOllamaModels(models);
       if (models.length > 0 && !models.includes(ollamaModel)) {
         setOllamaModel(models[0]);
       }
-    } catch {
-      // Falha silenciosa se o Ollama não estiver rodando
+    } catch (err: any) {
+      setOllamaDetectError(err.message);
+      setDetectedOllamaModels([]);
     } finally {
       setIsDetectingOllama(false);
     }
@@ -133,13 +136,14 @@ export const ScannerTab: React.FC = () => {
         });
       }
 
-      // Se o provedor for Ollama, e o backend na nuvem retornou aviso de conexão, tenta a IA diretamente via Navegador!
+      // Se o provedor for Ollama, e o backend na nuvem retornou aviso de conexão, tenta a IA diretamente via Navegador se a URL do Ollama for local!
+      // (Isso pressupõe que o usuário ativou o OLLAMA_ORIGINS no Windows)
       if (useAi && provider === 'ollama' && result.summary.ai_executive_summary.includes('Não foi possível conectar ao Ollama')) {
         try {
           const prompt = `Você é um Auditor Sênior GRC. Analise este resumo de achados da API:\nTotal de Arquivos: ${result.summary.total_files_scanned}, Total de Achados: ${result.summary.total_findings}, Achados principais: ${result.findings.slice(0, 5).map(f => f.title).join('; ')}.\nFaça um resumo executivo com recomendações de segurança.`;
           const directSummary = await api.generateDirectOllamaCompletion(ollamaUrl, ollamaModel, prompt);
           if (directSummary) {
-            result.summary.ai_executive_summary = `[Gerado diretamente via Navegador no Modelo Local ${ollamaModel}]\n\n` + directSummary;
+            result.summary.ai_executive_summary = `[Gerado via Navegador Seguro no Modelo Local ${ollamaModel}]\n\n` + directSummary;
           }
         } catch {
           // Mantém mensagem original do backend
@@ -389,51 +393,68 @@ export const ScannerTab: React.FC = () => {
             {/* Seleção e Detecção do Ollama */}
             {provider === 'ollama' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '12px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 2.5fr', gap: '12px' }}>
                   <div>
                     <label style={{ fontSize: '0.82rem', fontWeight: 600, display: 'block', marginBottom: '4px', color: 'var(--accent-cyan)' }}>
-                      Modelo Ollama Selecionado (Detectados no seu computador):
+                      Base URL (Ngrok ou Localhost):
                     </label>
-                    {detectedOllamaModels.length > 0 ? (
-                      <select
-                        value={ollamaModel}
-                        onChange={(e) => setOllamaModel(e.target.value)}
-                        style={{ width: '100%', fontWeight: 600, color: 'var(--accent-cyan)' }}
-                      >
-                        {detectedOllamaModels.map((m) => (
-                          <option key={m} value={m}>{m} (Instalado)</option>
-                        ))}
-                      </select>
-                    ) : (
-                      <input
-                        type="text"
-                        placeholder="ex: gemma:2b, gemma:12b, gemma:26b, qwen3.5:2b..."
-                        value={ollamaModel}
-                        onChange={(e) => setOllamaModel(e.target.value)}
-                        style={{ width: '100%' }}
-                      />
-                    )}
+                    <input
+                      type="text"
+                      placeholder="https://sua-url.ngrok-free.app"
+                      value={ollamaUrl}
+                      onChange={(e) => handleOllamaUrlChange(e.target.value)}
+                      style={{ width: '100%', fontSize: '0.85rem' }}
+                    />
                   </div>
-                  <div style={{ alignSelf: 'end' }}>
-                    <button
-                      className="btn-secondary"
-                      onClick={() => autoDetectOllama(ollamaUrl)}
-                      disabled={isDetectingOllama}
-                      style={{ width: '100%', justifyContent: 'center', fontSize: '0.8rem' }}
-                    >
-                      {isDetectingOllama ? <RefreshCw className="animate-spin" size={14} /> : <Database size={14} />}
-                      Detectar Modelos
-                    </button>
+                  <div>
+                    <label style={{ fontSize: '0.82rem', fontWeight: 600, display: 'block', marginBottom: '4px', color: 'var(--accent-cyan)' }}>
+                      Modelo Selecionado:
+                    </label>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      {detectedOllamaModels.length > 0 ? (
+                        <select
+                          value={ollamaModel}
+                          onChange={(e) => setOllamaModel(e.target.value)}
+                          style={{ flex: 1, fontWeight: 600, color: 'var(--accent-cyan)' }}
+                        >
+                          {detectedOllamaModels.map((m) => (
+                            <option key={m} value={m}>{m} (Instalado)</option>
+                          ))}
+                        </select>
+                      ) : (
+                        <input
+                          type="text"
+                          placeholder="ex: gemma:2b, gemma:12b, gemma:26b..."
+                          value={ollamaModel}
+                          onChange={(e) => setOllamaModel(e.target.value)}
+                          style={{ flex: 1 }}
+                        />
+                      )}
+                      <button
+                        className="btn-secondary"
+                        onClick={() => autoDetectOllama(ollamaUrl)}
+                        disabled={isDetectingOllama}
+                        style={{ whiteSpace: 'nowrap', padding: '0 12px' }}
+                      >
+                        {isDetectingOllama ? <RefreshCw className="animate-spin" size={14} /> : <Database size={14} />} Detectar
+                      </button>
+                    </div>
                   </div>
                 </div>
 
+                {/* Exibe erro ou sucesso de detecção */}
                 <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                  {detectedOllamaModels.length > 0 ? (
-                    <span style={{ color: 'var(--accent-emerald)', fontWeight: 600 }}>
-                      ✓ {detectedOllamaModels.length} modelo(s) detectado(s) no seu Ollama local!
+                  {ollamaDetectError ? (
+                    <div style={{ color: 'var(--accent-rose)', display: 'flex', gap: '6px', alignItems: 'flex-start' }}>
+                      <AlertTriangle size={14} style={{ flexShrink: 0, marginTop: '2px' }} />
+                      <span>{ollamaDetectError} <br />👉 Dica: Se o seu backend está na nuvem (Railway), <strong>substitua 'http://localhost:11434' pela URL gerada pelo Ngrok (ex: https://abc.ngrok-free.app)</strong> para que a nuvem consiga listar e acessar o Ollama do seu computador!</span>
+                    </div>
+                  ) : detectedOllamaModels.length > 0 ? (
+                    <span style={{ color: 'var(--accent-emerald)', fontWeight: 600, display: 'flex', gap: '6px', alignItems: 'center' }}>
+                      <CheckCircle2 size={14} /> {detectedOllamaModels.length} modelo(s) encontrado(s) via proxy!
                     </span>
                   ) : (
-                    <span>Servidor Ollama local em <code>{ollamaUrl}</code>. Se o Ollama estiver rodando no seu Windows, o navegador irá gerar o resumo diretamente no seu modelo local.</span>
+                    <span>Insira sua URL (ex: Ngrok) e clique em Detectar para listar seus modelos do Ollama.</span>
                   )}
                 </div>
               </div>
