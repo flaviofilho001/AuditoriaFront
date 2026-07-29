@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Cpu, Key, AlertTriangle, Send, CheckCircle2, RefreshCw } from 'lucide-react';
 import { api, LLMTestResponse } from '../services/api';
 
@@ -13,7 +13,22 @@ export const LLMBenchTab: React.FC = () => {
   const [result, setResult] = useState<LLMTestResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    const savedKey = localStorage.getItem('gemini_api_key');
+    if (savedKey) setApiKey(savedKey);
+  }, []);
+
+  const handleKeyChange = (val: string) => {
+    setApiKey(val);
+    localStorage.setItem('gemini_api_key', val);
+  };
+
   const handleTest = async () => {
+    if (provider === 'gemini' && !apiKey.trim()) {
+      setError('Por favor insira sua Gemini API Key antes de testar.');
+      return;
+    }
+
     setLoading(true);
     setError(null);
     setResult(null);
@@ -39,10 +54,10 @@ export const LLMBenchTab: React.FC = () => {
     <div style={{ maxWidth: '1000px', margin: '32px auto', padding: '0 16px' }}>
       <div className="glass-card" style={{ padding: '24px', marginBottom: '24px' }}>
         <h2 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Cpu color="var(--accent-cyan)" /> Configuração & Teste do Provedor de IA
+          <Cpu color="var(--accent-cyan)" /> Configuração & Teste da IA (Google GenAI SDK)
         </h2>
         <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', marginBottom: '20px' }}>
-          Escolha entre a API de Nuvem (Google Gemini <code className="code-font" style={{ color: 'var(--accent-cyan)' }}>gemini-3.5-flash</code> com Rate Limiter de 14 RPM) ou um modelo Ollama local (ex: Gemma, Qwen).
+          Testador oficial usando o modelo <code className="code-font" style={{ color: 'var(--accent-cyan)' }}>gemini-3.5-flash</code> (via SDK <code>google-genai</code> com 14 RPM) ou Ollama local.
         </p>
 
         {/* Provedor Radio Group */}
@@ -58,10 +73,10 @@ export const LLMBenchTab: React.FC = () => {
             }}
           >
             <div style={{ fontWeight: 700, marginBottom: '4px', color: provider === 'gemini' ? 'var(--accent-indigo)' : 'var(--text-main)' }}>
-              Google Gemini API (gemini-3.5-flash)
+              Google Gemini (gemini-3.5-flash)
             </div>
             <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-              Usa a chave de API e o modelo exclusivo <strong>gemini-3.5-flash</strong> com Rate Limiter estrito de <strong>14 req/min</strong>.
+              Usa a SDK oficial <code>google-genai</code> e modelo <strong>gemini-3.5-flash</strong> com Rate Limiting estrito de <strong>14 req/min</strong>.
             </div>
           </div>
 
@@ -79,7 +94,7 @@ export const LLMBenchTab: React.FC = () => {
               Ollama Local
             </div>
             <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-              Roda 100% offline em <code>http://localhost:11434</code> (ex: gemma:2b, gemma:12b, gemma:26b, qwen3.5:2b).
+              Servidor Ollama local ou remoto (ex: gemma:2b, gemma:12b, gemma:26b, qwen3.5:2b).
             </div>
           </div>
         </div>
@@ -89,21 +104,24 @@ export const LLMBenchTab: React.FC = () => {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px', background: 'rgba(0,0,0,0.2)', padding: '16px', borderRadius: '10px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: 'var(--accent-amber)' }}>
               <AlertTriangle size={16} />
-              <span><strong>Modelo Fixo:</strong> Usando exclusivamente o <strong>gemini-3.5-flash</strong> com Rate Limiter de <strong>14 requisições/minuto</strong>.</span>
+              <span><strong>Google GenAI SDK:</strong> Modelo <strong>gemini-3.5-flash</strong> ativado via <code>genai.Client()</code>.</span>
             </div>
             <div>
-              <label style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '4px' }}>
-                Gemini API Key (Opcional se já estiver configurada no .env do Backend):
+              <label style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '4px', color: 'var(--accent-indigo)' }}>
+                Gemini API Key (Obrigatória):
               </label>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <Key size={18} style={{ alignSelf: 'center', color: 'var(--text-dim)' }} />
                 <input
                   type="password"
-                  placeholder="AIzaSy..."
+                  placeholder="Cole sua API Key da Google AI (ex: AIzaSy...)"
                   value={apiKey}
-                  onChange={(e) => setApiKey(e.target.value)}
+                  onChange={(e) => handleKeyChange(e.target.value)}
                   style={{ flex: 1 }}
                 />
+              </div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                Obtenha sua chave gratuitamente em <a href="https://ai.google.dev" target="_blank" rel="noreferrer" style={{ color: 'var(--accent-cyan)' }}>ai.google.dev</a>.
               </div>
             </div>
           </div>
@@ -154,7 +172,7 @@ export const LLMBenchTab: React.FC = () => {
           style={{ width: '100%', justifyContent: 'center' }}
         >
           {loading ? <RefreshCw className="animate-spin" size={18} /> : <Send size={18} />}
-          {loading ? 'Processando com gemini-3.5-flash (Aguarde)...' : 'Testar Resposta da IA'}
+          {loading ? 'Processando com gemini-3.5-flash (SDK)...' : 'Testar Resposta da IA'}
         </button>
       </div>
 
