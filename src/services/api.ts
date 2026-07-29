@@ -124,6 +124,41 @@ export const api = {
     return res.json();
   },
 
+  /**
+   * Detecta diretamente pelo navegador os modelos instalados no Ollama do usuário!
+   */
+  detectLocalOllamaModels: async (baseUrl: string = 'http://localhost:11434'): Promise<string[]> => {
+    const cleanUrl = baseUrl.replace(/\/$/, '');
+    const res = await fetch(`${cleanUrl}/api/tags`);
+    if (!res.ok) throw new Error('Não foi possível conectar ao Ollama local.');
+    const data = await res.json();
+    const models = data.models || [];
+    return models.map((m: any) => m.name);
+  },
+
+  /**
+   * Executa a geração direta no Ollama local a partir do navegador se o backend estiver na nuvem
+   */
+  generateDirectOllamaCompletion: async (
+    baseUrl: string, 
+    model: string, 
+    prompt: string
+  ): Promise<string> => {
+    const cleanUrl = baseUrl.replace(/\/$/, '');
+    const res = await fetch(`${cleanUrl}/api/generate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: model,
+        prompt: prompt,
+        stream: false
+      })
+    });
+    if (!res.ok) throw new Error(`Erro ao gerar resposta no Ollama (${model})`);
+    const data = await res.json();
+    return data.response || '';
+  },
+
   scanZipFile: async (
     file: File, 
     provider: 'gemini' | 'ollama', 

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Upload, GitBranch, Search, ShieldAlert, FileCode, CheckCircle2, 
   AlertTriangle, RefreshCw, Key, Layers, Cpu, FileArchive, ArrowRight,
-  Download, FileText, Code, Globe
+  Download, FileText, Code, Globe, Database
 } from 'lucide-react';
 import { api, AuditScanResult, VulnerabilityFinding } from '../services/api';
 
@@ -22,17 +22,37 @@ export const ScannerTab: React.FC = () => {
   const [provider, setProvider] = useState<'gemini' | 'ollama'>('gemini');
   const [apiKey, setApiKey] = useState('');
   const [ollamaUrl, setOllamaUrl] = useState('http://localhost:11434');
+  const [ollamaModel, setOllamaModel] = useState('gemma:2b');
+  const [detectedOllamaModels, setDetectedOllamaModels] = useState<string[]>([]);
+  const [isDetectingOllama, setIsDetectingOllama] = useState(false);
   const [useAi, setUseAi] = useState(true);
 
-  // Carrega chave do localStorage ao iniciar
+  // Carrega chave e auto-detecta Ollama ao iniciar
   useEffect(() => {
     const savedKey = localStorage.getItem('gemini_api_key');
     if (savedKey) setApiKey(savedKey);
     const savedOllama = localStorage.getItem('ollama_url');
     if (savedOllama) setOllamaUrl(savedOllama);
+    
+    // Tenta detectar modelos do Ollama local
+    autoDetectOllama(savedOllama || 'http://localhost:11434');
   }, []);
 
-  // Salva no localStorage quando alterado
+  const autoDetectOllama = async (urlToTest: string) => {
+    setIsDetectingOllama(true);
+    try {
+      const models = await api.detectLocalOllamaModels(urlToTest);
+      setDetectedOllamaModels(models);
+      if (models.length > 0 && !models.includes(ollamaModel)) {
+        setOllamaModel(models[0]);
+      }
+    } catch {
+      // Falha silenciosa se o Ollama não estiver rodando
+    } finally {
+      setIsDetectingOllama(false);
+    }
+  };
+
   const handleApiKeyChange = (val: string) => {
     setApiKey(val);
     localStorage.setItem('gemini_api_key', val);
@@ -41,6 +61,7 @@ export const ScannerTab: React.FC = () => {
   const handleOllamaUrlChange = (val: string) => {
     setOllamaUrl(val);
     localStorage.setItem('ollama_url', val);
+    autoDetectOllama(val);
   };
 
   // Estados do Scanner e Resultados
@@ -93,7 +114,7 @@ export const ScannerTab: React.FC = () => {
           provider,
           apiKey || undefined,
           ollamaUrl || undefined,
-          undefined,
+          ollamaModel || undefined,
           useAi
         );
       } else {
@@ -107,8 +128,22 @@ export const ScannerTab: React.FC = () => {
           provider,
           api_key: apiKey || undefined,
           ollama_base_url: ollamaUrl || undefined,
+          ollama_model: ollamaModel || undefined,
           use_ai: useAi
         });
+      }
+
+      // Se o provedor for Ollama, e o backend na nuvem retornou aviso de conexão, tenta a IA diretamente via Navegador!
+      if (useAi && provider === 'ollama' && result.summary.ai_executive_summary.includes('Não foi possível conectar ao Ollama')) {
+        try {
+          const prompt = `Você é um Auditor Sênior GRC. Analise este resumo de achados da API:\nTotal de Arquivos: ${result.summary.total_files_scanned}, Total de Achados: ${result.summary.total_findings}, Achados principais: ${result.findings.slice(0, 5).map(f => f.title).join('; ')}.\nFaça um resumo executivo com recomendações de segurança.`;
+          const directSummary = await api.generateDirectOllamaCompletion(ollamaUrl, ollamaModel, prompt);
+          if (directSummary) {
+            result.summary.ai_executive_summary = `[Gerado diretamente via Navegador no Modelo Local ${ollamaModel}]\n\n` + directSummary;
+          }
+        } catch {
+          // Mantém mensagem original do backend
+        }
       }
 
       setScanResult(result);
@@ -164,7 +199,7 @@ export const ScannerTab: React.FC = () => {
           <Search color="var(--accent-indigo)" /> Auditoria de Conformidade GRC
         </h2>
         <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', marginBottom: '20px' }}>
-          Escolha como deseja enviar o código da sua API para ser auditado pela AST, GraphRAG e pela IA (<code>gemini-1.5-flash</code> com 14 RPM / Ollama).
+          Escolha como deseja enviar o código da sua API para ser auditado pela AST, GraphRAG e pela IA (<code>gemini-3.5-flash</code> com 14 RPM / Ollama).
         </p>
 
         {/* Abas ZIP vs Git */}
@@ -313,8 +348,8 @@ export const ScannerTab: React.FC = () => {
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>Provedor IA:</label>
                 <select value={provider} onChange={(e) => setProvider(e.target.value as any)}>
-                  <option value="gemini">Google Gemini (gemini-1.5-flash)</option>
-                  <option value="ollama">Ollama (Servidor Local ou Ngrok)</option>
+                  <option value="gemini">Google Gemini (gemini-3.5-flash com SDK)</option>
+                  <option value="ollama">Ollama (Detector Automático de Modelos)</option>
                 </select>
               </div>
               
@@ -332,11 +367,11 @@ export const ScannerTab: React.FC = () => {
               </div>
             </div>
 
-            {/* Input da Chave do Gemini com Persistência */}
+            {/* Input da Chave do Gemini */}
             {provider === 'gemini' && (
               <div>
                 <label style={{ fontSize: '0.82rem', fontWeight: 600, display: 'block', marginBottom: '4px', color: 'var(--accent-indigo)' }}>
-                  Sua Gemini API Key (Salva no navegador):
+                  Sua Gemini API Key (Salva no seu navegador):
                 </label>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <Key size={16} style={{ alignSelf: 'center', color: 'var(--text-dim)' }} />
@@ -351,22 +386,55 @@ export const ScannerTab: React.FC = () => {
               </div>
             )}
 
-            {/* Input da URL do Ollama com Aviso Ngrok */}
+            {/* Seleção e Detecção do Ollama */}
             {provider === 'ollama' && (
-              <div>
-                <label style={{ fontSize: '0.82rem', fontWeight: 600, display: 'block', marginBottom: '4px', color: 'var(--accent-cyan)' }}>
-                  Ollama Base URL:
-                </label>
-                <input
-                  type="text"
-                  placeholder="http://localhost:11434 ou https://xxx.ngrok-free.app"
-                  value={ollamaUrl}
-                  onChange={(e) => handleOllamaUrlChange(e.target.value)}
-                  style={{ width: '100%', fontSize: '0.85rem' }}
-                />
-                <div style={{ fontSize: '0.78rem', color: 'var(--accent-amber)', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Globe size={14} />
-                  <span><strong>Nota para deploy na nuvem:</strong> Para o backend no Railway se conectar ao seu Ollama local, exponha a porta rodando <code>ngrok http 11434</code> e cola a URL pública do Ngrok acima.</span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '12px' }}>
+                  <div>
+                    <label style={{ fontSize: '0.82rem', fontWeight: 600, display: 'block', marginBottom: '4px', color: 'var(--accent-cyan)' }}>
+                      Modelo Ollama Selecionado (Detectados no seu computador):
+                    </label>
+                    {detectedOllamaModels.length > 0 ? (
+                      <select
+                        value={ollamaModel}
+                        onChange={(e) => setOllamaModel(e.target.value)}
+                        style={{ width: '100%', fontWeight: 600, color: 'var(--accent-cyan)' }}
+                      >
+                        {detectedOllamaModels.map((m) => (
+                          <option key={m} value={m}>{m} (Instalado)</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        type="text"
+                        placeholder="ex: gemma:2b, gemma:12b, gemma:26b, qwen3.5:2b..."
+                        value={ollamaModel}
+                        onChange={(e) => setOllamaModel(e.target.value)}
+                        style={{ width: '100%' }}
+                      />
+                    )}
+                  </div>
+                  <div style={{ alignSelf: 'end' }}>
+                    <button
+                      className="btn-secondary"
+                      onClick={() => autoDetectOllama(ollamaUrl)}
+                      disabled={isDetectingOllama}
+                      style={{ width: '100%', justifyContent: 'center', fontSize: '0.8rem' }}
+                    >
+                      {isDetectingOllama ? <RefreshCw className="animate-spin" size={14} /> : <Database size={14} />}
+                      Detectar Modelos
+                    </button>
+                  </div>
+                </div>
+
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                  {detectedOllamaModels.length > 0 ? (
+                    <span style={{ color: 'var(--accent-emerald)', fontWeight: 600 }}>
+                      ✓ {detectedOllamaModels.length} modelo(s) detectado(s) no seu Ollama local!
+                    </span>
+                  ) : (
+                    <span>Servidor Ollama local em <code>{ollamaUrl}</code>. Se o Ollama estiver rodando no seu Windows, o navegador irá gerar o resumo diretamente no seu modelo local.</span>
+                  )}
                 </div>
               </div>
             )}
@@ -460,7 +528,7 @@ export const ScannerTab: React.FC = () => {
           {scanResult.summary.ai_executive_summary && (
             <div className="glass-card" style={{ padding: '24px', borderLeft: '4px solid var(--accent-indigo)', marginBottom: '24px' }}>
               <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '12px', color: 'var(--accent-indigo)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Cpu size={20} /> Resumo Executivo da IA (gemini-1.5-flash / GraphRAG)
+                <Cpu size={20} /> Resumo Executivo da IA (gemini-3.5-flash / {ollamaModel})
               </h3>
               <div className="code-font" style={{ fontSize: '0.9rem', lineHeight: '1.6', whiteSpace: 'pre-wrap', color: 'var(--text-main)', background: 'rgba(0,0,0,0.3)', padding: '16px', borderRadius: '8px' }}>
                 {scanResult.summary.ai_executive_summary}
