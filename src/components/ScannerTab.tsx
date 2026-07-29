@@ -157,7 +157,7 @@ export const ScannerTab: React.FC = () => {
     }
   };
 
-  const handleDownloadReport = async (format: 'html' | 'markdown' | 'sarif') => {
+  const handleDownloadReport = async (format: 'html' | 'markdown' | 'sarif' | 'graphml') => {
     if (!scanResult) return;
     setIsExporting(true);
     try {
@@ -165,6 +165,7 @@ export const ScannerTab: React.FC = () => {
       
       let blob: Blob;
       let filename = `relatorio_conformidade_${format}.${format === 'markdown' ? 'md' : format}`;
+      if (format === 'graphml') filename = 'grafo_conhecimento_graphrag.graphml';
 
       if (format === 'sarif') {
         const jsonStr = JSON.stringify(reportData, null, 2);
@@ -535,7 +536,19 @@ export const ScannerTab: React.FC = () => {
               >
                 <Code size={15} color="var(--accent-amber)" /> GitHub Security (SARIF)
               </button>
+              <button
+                className="btn-secondary"
+                onClick={() => handleDownloadReport('graphml')}
+                disabled={isExporting}
+                style={{ fontSize: '0.82rem' }}
+              >
+                <Layers size={15} color="var(--accent-cyan)" /> Grafo de Conhecimento (.graphml)
+              </button>
             </div>
+          </div>
+          
+          <div style={{ padding: '0 24px 24px 24px', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+            <strong>Dica de Visualização 3D:</strong> Baixe o arquivo <code>.graphml</code> acima e arraste-o para o site <a href="https://noworneverev.github.io/graphrag-visualizer/#/upload" target="_blank" rel="noreferrer" style={{ color: 'var(--accent-cyan)' }}>GraphRAG Visualizer</a> para ver o mapa do seu código!
           </div>
 
           {/* Cards com Métricas Gerais */}

@@ -210,7 +210,7 @@ export const api = {
     return res.json();
   },
 
-  exportReport: async (scanResult: AuditScanResult, format: 'html' | 'markdown' | 'sarif'): Promise<Blob | object> => {
+  exportReport: async (scanResult: AuditScanResult, format: 'html' | 'markdown' | 'sarif' | 'graphml'): Promise<Blob | object> => {
     const res = await fetch(`${BACKEND_URL}/api/v1/report/export`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -225,7 +225,11 @@ export const api = {
       return res.json();
     } else {
       const text = await res.text();
-      const mimeType = format === 'html' ? 'text/html' : 'text/markdown';
+      let mimeType = 'text/plain';
+      if (format === 'html') mimeType = 'text/html';
+      if (format === 'markdown') mimeType = 'text/markdown';
+      if (format === 'graphml') mimeType = 'application/xml';
+      
       return new Blob([text], { type: mimeType });
     }
   }
