@@ -5,7 +5,6 @@ import { api, LLMTestResponse } from '../services/api';
 export const LLMBenchTab: React.FC = () => {
   const [provider, setProvider] = useState<'gemini' | 'ollama'>('gemini');
   const [apiKey, setApiKey] = useState('');
-  const [geminiModel, setGeminiModel] = useState('gemini-1.5-flash');
   const [ollamaUrl, setOllamaUrl] = useState('http://localhost:11434');
   const [ollamaModel, setOllamaModel] = useState('gemma:2b');
   const [prompt, setPrompt] = useState('Analise se um endpoint C# que recebe CPF via GET query parameter viola a LGPD.');
@@ -23,7 +22,7 @@ export const LLMBenchTab: React.FC = () => {
       const res = await api.testLLM({
         provider,
         api_key: apiKey || undefined,
-        gemini_model: geminiModel,
+        gemini_model: 'gemini-3.5-flash',
         ollama_base_url: ollamaUrl,
         ollama_model: ollamaModel,
         prompt
@@ -43,7 +42,7 @@ export const LLMBenchTab: React.FC = () => {
           <Cpu color="var(--accent-cyan)" /> Configuração & Teste do Provedor de IA
         </h2>
         <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', marginBottom: '20px' }}>
-          Escolha entre a API de Nuvem (Google Gemini com Rate Limiter estrito de 14 RPM) ou um modelo Ollama local (ex: Gemma, Qwen).
+          Escolha entre a API de Nuvem (Google Gemini <code className="code-font" style={{ color: 'var(--accent-cyan)' }}>gemini-3.5-flash</code> com Rate Limiter de 14 RPM) ou um modelo Ollama local (ex: Gemma, Qwen).
         </p>
 
         {/* Provedor Radio Group */}
@@ -59,10 +58,10 @@ export const LLMBenchTab: React.FC = () => {
             }}
           >
             <div style={{ fontWeight: 700, marginBottom: '4px', color: provider === 'gemini' ? 'var(--accent-indigo)' : 'var(--text-main)' }}>
-              Google Gemini API (Com Rate Limiter)
+              Google Gemini API (gemini-3.5-flash)
             </div>
             <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-              Usa chave de API. Throttling automático para não ultrapassar <strong>14 req/min</strong>.
+              Usa a chave de API e o modelo exclusivo <strong>gemini-3.5-flash</strong> com Rate Limiter estrito de <strong>14 req/min</strong>.
             </div>
           </div>
 
@@ -90,7 +89,7 @@ export const LLMBenchTab: React.FC = () => {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px', background: 'rgba(0,0,0,0.2)', padding: '16px', borderRadius: '10px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: 'var(--accent-amber)' }}>
               <AlertTriangle size={16} />
-              <span><strong>Aviso de Rate Limiter:</strong> A API do Gemini foi limitada no backend a no máximo <strong>14 requisições/minuto</strong>. Se você enviar múltiplas requisições, o backend aguardará automaticamente antes de responder.</span>
+              <span><strong>Modelo Fixo:</strong> Usando exclusivamente o <strong>gemini-3.5-flash</strong> com Rate Limiter de <strong>14 requisições/minuto</strong>.</span>
             </div>
             <div>
               <label style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '4px' }}>
@@ -106,14 +105,6 @@ export const LLMBenchTab: React.FC = () => {
                   style={{ flex: 1 }}
                 />
               </div>
-            </div>
-            <div>
-              <label style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Modelo Gemini:</label>
-              <select value={geminiModel} onChange={(e) => setGeminiModel(e.target.value)} style={{ width: '100%' }}>
-                <option value="gemini-1.5-flash">gemini-1.5-flash (Recomendado - Rápido)</option>
-                <option value="gemini-1.5-pro">gemini-1.5-pro (Mais capacidade de raciocínio)</option>
-                <option value="gemini-2.0-flash-exp">gemini-2.0-flash-exp</option>
-              </select>
             </div>
           </div>
         )}
@@ -163,7 +154,7 @@ export const LLMBenchTab: React.FC = () => {
           style={{ width: '100%', justifyContent: 'center' }}
         >
           {loading ? <RefreshCw className="animate-spin" size={18} /> : <Send size={18} />}
-          {loading ? 'Processando com IA (Aguarde)...' : 'Testar Resposta da IA'}
+          {loading ? 'Processando com gemini-3.5-flash (Aguarde)...' : 'Testar Resposta da IA'}
         </button>
       </div>
 
@@ -182,8 +173,8 @@ export const LLMBenchTab: React.FC = () => {
             <span style={{ fontWeight: 700, color: 'var(--accent-emerald)', display: 'flex', alignItems: 'center', gap: '6px' }}>
               <CheckCircle2 size={18} /> Resposta Recebida com Sucesso
             </span>
-            <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }} className="code-font">
-              Provedor: {result.health.provider} ({result.health.model || result.health.current_model || 'N/A'})
+            <span className="code-font" style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>
+              Provedor: {result.health.provider} ({result.health.model || result.health.current_model || 'gemini-3.5-flash'})
             </span>
           </div>
 
