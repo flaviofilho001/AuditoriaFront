@@ -6,7 +6,7 @@ WORKDIR /app
 # Copia arquivos de definição de pacotes
 COPY package*.json ./
 
-# Instala dependências (usa npm install para maior compatibilidade se package-lock.json não estiver presente)
+# Instala dependências
 RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
 
 # Copia o restante do código-fonte
@@ -22,7 +22,8 @@ RUN npm run build
 FROM nginx:alpine
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Expõe a porta 80 padrão do Nginx
-EXPOSE 80
+# Expõe as portas compatíveis com Railway
+EXPOSE 8080 80
 
-CMD ["nginx", "-g", "daemon off;"]
+# Substitui dinamicamente a porta de escuta do Nginx para a $PORT atribuída pelo Railway (padrão 8080)
+CMD ["sh", "-c", "sed -i 's/listen  *80;/listen '\"${PORT:-8080}\"';/g' /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"]
