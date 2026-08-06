@@ -42,8 +42,18 @@ export const App: React.FC = () => {
         {activeTab === 'grc' && <GRCKnowledgeTab />}
       </main>
 
-      <footer style={{ textAlign: 'center', padding: '24px', fontSize: '0.8rem', color: 'var(--text-dim)', borderTop: '1px solid var(--border-color)', marginTop: '40px' }}>
-        Auditor de Conformidade de APIs • Desenvolvido com Clean Architecture, GraphRAG e IA para Segurança & LGPD
+      <footer style={{
+        textAlign: 'center',
+        padding: '20px',
+        fontSize: '0.85rem',
+        fontFamily: 'var(--font-title)',
+        fontWeight: 700,
+        color: '#000000',
+        background: 'var(--accent-yellow)',
+        borderTop: 'var(--border-thick)',
+        marginTop: '40px'
+      }}>
+        Auditor de Conformidade de APIs • Clean Architecture + GraphRAG + IA para Segurança & LGPD
       </footer>
     </div>
   );

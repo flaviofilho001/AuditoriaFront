@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { BookOpen, FileText, RefreshCw, CheckCircle2 } from 'lucide-react';
 import { api } from '../services/api';
 
 export const GRCKnowledgeTab: React.FC = () => {
@@ -43,14 +42,20 @@ export const GRCKnowledgeTab: React.FC = () => {
 
   return (
     <div style={{ maxWidth: '1100px', margin: '32px auto', padding: '0 16px' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: '20px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: '24px' }}>
         {/* Document Selector Sidebar */}
-        <div className="glass-card" style={{ padding: '20px', height: 'fit-content' }}>
-          <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <BookOpen size={18} color="var(--accent-indigo)" /> Normas Carregadas
+        <div className="brutal-card" style={{ padding: '20px', height: 'fit-content', background: '#FFFFFF' }}>
+          <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px', textTransform: 'uppercase' }}>
+            <i className="fa-solid fa-book" style={{ color: 'var(--accent-pink)' }}></i> Normas Carregadas
           </h3>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {error && (
+            <div style={{ padding: '10px', background: 'var(--accent-rose)', color: '#FFF', fontWeight: 700, borderRadius: '6px', border: '2px solid #000', fontSize: '0.8rem', marginBottom: '12px' }}>
+              {error}
+            </div>
+          )}
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {docs.map((doc) => (
               <button
                 key={doc}
@@ -59,43 +64,55 @@ export const GRCKnowledgeTab: React.FC = () => {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '10px',
-                  padding: '10px 14px',
-                  borderRadius: '8px',
-                  border: selectedDoc === doc ? '1px solid var(--accent-indigo)' : '1px solid var(--border-color)',
-                  background: selectedDoc === doc ? 'rgba(99, 102, 241, 0.15)' : 'rgba(255,255,255,0.02)',
-                  color: selectedDoc === doc ? 'var(--accent-indigo)' : 'var(--text-main)',
-                  fontWeight: selectedDoc === doc ? 600 : 400,
+                  padding: '12px 14px',
+                  borderRadius: '6px',
+                  border: 'var(--border-thin)',
+                  background: selectedDoc === doc ? 'var(--accent-yellow)' : '#FFFFFF',
+                  color: '#000000',
+                  fontWeight: selectedDoc === doc ? 800 : 600,
+                  boxShadow: selectedDoc === doc ? 'var(--shadow-brutal-sm)' : 'none',
                   cursor: 'pointer',
                   textAlign: 'left',
-                  fontSize: '0.85rem'
+                  fontSize: '0.88rem',
+                  transition: 'all 0.15s ease'
                 }}
               >
-                <FileText size={16} />
-                <span style={{ flex: 1 }}>{doc}</span>
+                <i className="fa-solid fa-file-lines" style={{ color: selectedDoc === doc ? '#000000' : 'var(--text-muted)' }}></i>
+                <span style={{ flex: 1, fontFamily: 'var(--font-title)' }}>{doc}</span>
               </button>
             ))}
           </div>
         </div>
 
         {/* Document Content View */}
-        <div className="glass-card" style={{ padding: '24px', minHeight: '500px' }}>
+        <div className="brutal-card" style={{ padding: '28px', minHeight: '500px', background: '#FFFFFF' }}>
           {selectedDoc && (
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px' }}>
-                <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--accent-cyan)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: 'var(--border-thick)', paddingBottom: '16px' }}>
+                <h2 style={{ fontSize: '1.4rem', fontWeight: 800, textTransform: 'uppercase', color: '#000000' }}>
                   {selectedDoc}
                 </h2>
-                <span style={{ fontSize: '0.78rem', color: 'var(--accent-emerald)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <CheckCircle2 size={14} /> Ativo na Base RAG
+                <span className="badge badge-info" style={{ background: 'var(--accent-cyan)', color: '#000' }}>
+                  <i className="fa-solid fa-circle-check"></i> Ativo na Base RAG
                 </span>
               </div>
 
               {loading ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)' }}>
-                  <RefreshCw className="animate-spin" size={18} /> Carregando norma GRC...
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#000', fontWeight: 700 }}>
+                  <i className="fa-solid fa-rotate fa-spin" style={{ fontSize: '1.2rem' }}></i> Carregando norma GRC...
                 </div>
               ) : (
-                <div style={{ whiteSpace: 'pre-wrap', fontSize: '0.88rem', lineHeight: '1.7', color: 'var(--text-main)' }} className="code-font">
+                <div style={{
+                  whiteSpace: 'pre-wrap',
+                  fontSize: '0.9rem',
+                  lineHeight: '1.7',
+                  color: '#000000',
+                  background: '#F9FAFB',
+                  padding: '20px',
+                  borderRadius: '6px',
+                  border: 'var(--border-thin)',
+                  boxShadow: 'var(--shadow-brutal-sm)'
+                }} className="code-font">
                   {docContent}
                 </div>
               )}

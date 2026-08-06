@@ -1,5 +1,4 @@
 import React from 'react';
-import { ShieldCheck, Cpu, BookOpen, Search, Server } from 'lucide-react';
 import { HealthResponse } from '../services/api';
 
 interface HeaderProps {
@@ -16,70 +15,111 @@ export const Header: React.FC<HeaderProps> = ({
   isBackendConnected
 }) => {
   return (
-    <header className="glass-card" style={{ borderRadius: '0 0 16px 16px', borderTop: 'none', padding: '16px 32px' }}>
+    <header style={{
+      backgroundColor: 'var(--bg-header)',
+      borderBottom: 'var(--border-thick)',
+      padding: '16px 32px'
+    }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-        {/* Brand */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        
+        {/* Brand Header */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
           <div style={{
-            background: 'linear-gradient(135deg, #6366f1, #06b6d4)',
-            padding: '10px',
-            borderRadius: '12px',
+            background: '#000000',
+            color: 'var(--accent-yellow)',
+            padding: '12px 14px',
+            borderRadius: '8px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 4px 12px rgba(99, 102, 241, 0.4)'
+            border: '2px solid #000000',
+            boxShadow: '3px 3px 0px #000000'
           }}>
-            <ShieldCheck size={26} color="white" />
+            <i className="fa-solid fa-shield-halved" style={{ fontSize: '1.6rem' }}></i>
           </div>
           <div>
-            <h1 style={{ fontSize: '1.25rem', fontWeight: 800, letterSpacing: '-0.02em', background: 'linear-gradient(to right, #ffffff, #9ca3af)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              Auditor de Conformidade de APIs
+            <h1 style={{
+              fontSize: '1.4rem',
+              fontWeight: 800,
+              textTransform: 'uppercase',
+              color: '#000000',
+              fontFamily: 'var(--font-title)',
+              lineHeight: 1.1
+            }}>
+              AUDITOR DE CONFORMIDADE DE APIS
             </h1>
-            <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+            <p style={{ fontSize: '0.8rem', fontWeight: 700, color: '#000000', marginTop: '2px' }}>
               IA + GraphRAG + GRC (OWASP Top 10 • LGPD Art. 46 • ISO 27001)
             </p>
           </div>
         </div>
 
         {/* Navigation Tabs */}
-        <nav style={{ display: 'flex', gap: '8px', background: 'rgba(0,0,0,0.2)', padding: '4px', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
+        <nav style={{ display: 'flex', gap: '10px' }}>
           <button
             className={activeTab === 'scanner' ? 'btn-primary' : 'btn-secondary'}
             onClick={() => setActiveTab('scanner')}
-            style={{ padding: '8px 16px', fontSize: '0.85rem' }}
+            style={{
+              padding: '10px 18px',
+              fontSize: '0.85rem',
+              background: activeTab === 'scanner' ? 'var(--accent-pink)' : '#FFFFFF',
+              color: activeTab === 'scanner' ? '#FFFFFF' : '#000000'
+            }}
           >
-            <Search size={16} /> Escanear Repositório
+            <i className="fa-solid fa-magnifying-glass"></i> Escanear Repositório
           </button>
           <button
             className={activeTab === 'llm' ? 'btn-primary' : 'btn-secondary'}
             onClick={() => setActiveTab('llm')}
-            style={{ padding: '8px 16px', fontSize: '0.85rem' }}
+            style={{
+              padding: '10px 18px',
+              fontSize: '0.85rem',
+              background: activeTab === 'llm' ? 'var(--accent-cyan)' : '#FFFFFF',
+              color: activeTab === 'llm' ? '#000000' : '#000000'
+            }}
           >
-            <Cpu size={16} /> Provedor LLM (IA)
+            <i className="fa-solid fa-microchip"></i> Provedor LLM (IA)
           </button>
           <button
             className={activeTab === 'grc' ? 'btn-primary' : 'btn-secondary'}
             onClick={() => setActiveTab('grc')}
-            style={{ padding: '8px 16px', fontSize: '0.85rem' }}
+            style={{
+              padding: '10px 18px',
+              fontSize: '0.85rem',
+              background: activeTab === 'grc' ? 'var(--accent-yellow)' : '#FFFFFF',
+              color: activeTab === 'grc' ? '#000000' : '#000000'
+            }}
           >
-            <BookOpen size={16} /> Base GRC ({health?.grc_docs_count || 0})
+            <i className="fa-solid fa-book"></i> Base GRC ({health?.grc_docs_count || 0})
           </button>
         </nav>
 
         {/* Backend Status */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', background: 'rgba(255,255,255,0.03)', padding: '6px 12px', borderRadius: '20px', border: '1px solid var(--border-color)' }}>
-          <Server size={14} color="var(--text-muted)" />
-          <span style={{ color: 'var(--text-muted)' }}>Backend:</span>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          fontSize: '0.85rem',
+          fontWeight: 700,
+          background: '#FFFFFF',
+          padding: '8px 14px',
+          borderRadius: '8px',
+          border: 'var(--border-thin)',
+          boxShadow: 'var(--shadow-brutal-sm)'
+        }}>
+          <i className="fa-solid fa-server" style={{ color: '#000000' }}></i>
+          <span>Backend:</span>
           {isBackendConnected ? (
-            <span style={{ color: 'var(--accent-emerald)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ color: '#000000', display: 'flex', alignItems: 'center', gap: '6px', background: 'var(--accent-emerald)', padding: '2px 8px', borderRadius: '4px', border: '1px solid #000' }}>
               <span className="glowing-dot"></span> Conectado (v{health?.version})
             </span>
           ) : (
-            <span style={{ color: 'var(--accent-rose)', fontWeight: 600 }}>
+            <span style={{ color: '#FFFFFF', background: 'var(--accent-rose)', padding: '2px 8px', borderRadius: '4px', border: '1px solid #000' }}>
               Desconectado
             </span>
           )}
         </div>
+
       </div>
     </header>
   );

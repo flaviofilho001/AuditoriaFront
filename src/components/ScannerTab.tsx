@@ -1,10 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Upload, GitBranch, Search, ShieldAlert, FileCode, CheckCircle2,
-  AlertTriangle, RefreshCw, Key, Layers, Cpu, FileArchive, ArrowRight,
-  Download, FileText, Code, Globe, Database, Terminal
-} from 'lucide-react';
-import { api, AuditScanResult, VulnerabilityFinding } from '../services/api';
+import { api, AuditScanResult } from '../services/api';
 
 export const ScannerTab: React.FC = () => {
   const [scanMode, setScanMode] = useState<'zip' | 'git'>('zip');
@@ -136,7 +131,6 @@ export const ScannerTab: React.FC = () => {
         });
       }
 
-      // Se o provedor for Ollama, e o backend na nuvem retornou aviso de conexão, tenta a IA diretamente via Navegador se a URL do Ollama for local!
       if (useAi && provider === 'ollama' && result.summary.ai_executive_summary.includes('Não foi possível conectar ao Ollama')) {
         try {
           const prompt = `Você é um Auditor Sênior GRC. Analise este resumo de achados da API:\nTotal de Arquivos: ${result.summary.total_files_scanned}, Total de Achados: ${result.summary.total_findings}, Achados principais: ${result.findings.slice(0, 5).map(f => f.title).join('; ')}.\nFaça um resumo executivo com recomendações de segurança.`;
@@ -145,7 +139,7 @@ export const ScannerTab: React.FC = () => {
             result.summary.ai_executive_summary = `[Gerado via Navegador Seguro no Modelo Local ${ollamaModel}]\n\n` + directSummary;
           }
         } catch {
-          // Mantém mensagem original do backend
+          // Mantém mensagem original
         }
       }
 
@@ -198,35 +192,37 @@ export const ScannerTab: React.FC = () => {
     <div style={{ maxWidth: '1100px', margin: '32px auto', padding: '0 16px' }}>
 
       {/* Box de Seleção de Modo */}
-      <div className="glass-card" style={{ padding: '24px', marginBottom: '24px' }}>
-        <h2 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Search color="var(--accent-indigo)" /> Auditoria de Conformidade GRC
+      <div className="brutal-card" style={{ padding: '28px', marginBottom: '24px', background: '#FFFFFF' }}>
+        <h2 style={{ fontSize: '1.3rem', fontWeight: 800, textTransform: 'uppercase', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <i className="fa-solid fa-magnifying-glass" style={{ color: 'var(--accent-pink)' }}></i> Auditoria de Conformidade GRC
         </h2>
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', marginBottom: '20px' }}>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '24px', fontWeight: 500 }}>
           Escolha como deseja enviar o código da sua API para ser auditado pela AST, GraphRAG e pela IA (<code>gemini-3.5-flash</code> com 14 RPM / Ollama).
         </p>
 
         {/* Abas ZIP vs Git */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
           <div
             onClick={() => setScanMode('zip')}
             style={{
-              padding: '16px',
-              borderRadius: '10px',
-              border: scanMode === 'zip' ? '2px solid var(--accent-indigo)' : '1px solid var(--border-color)',
-              background: scanMode === 'zip' ? 'rgba(99, 102, 241, 0.12)' : 'rgba(0,0,0,0.2)',
+              padding: '18px',
+              borderRadius: '8px',
+              border: scanMode === 'zip' ? 'var(--border-thick)' : 'var(--border-thin)',
+              background: scanMode === 'zip' ? 'var(--accent-yellow)' : '#FFFFFF',
+              boxShadow: scanMode === 'zip' ? 'var(--shadow-brutal)' : 'none',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '12px'
+              gap: '14px',
+              transition: 'all 0.15s ease'
             }}
           >
-            <FileArchive size={24} color={scanMode === 'zip' ? 'var(--accent-indigo)' : 'var(--text-dim)'} />
+            <i className="fa-solid fa-file-zipper" style={{ fontSize: '1.8rem', color: '#000000' }}></i>
             <div>
-              <div style={{ fontWeight: 700, color: scanMode === 'zip' ? 'var(--accent-indigo)' : 'var(--text-main)' }}>
+              <div style={{ fontWeight: 800, fontFamily: 'var(--font-title)', color: '#000000', fontSize: '1rem' }}>
                 Upload de Arquivo (.zip)
               </div>
-              <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+              <div style={{ fontSize: '0.82rem', color: '#000000', fontWeight: 500 }}>
                 Envie um arquivo compactado do projeto (C#, Go, Python, Java, TS).
               </div>
             </div>
@@ -235,22 +231,24 @@ export const ScannerTab: React.FC = () => {
           <div
             onClick={() => setScanMode('git')}
             style={{
-              padding: '16px',
-              borderRadius: '10px',
-              border: scanMode === 'git' ? '2px solid var(--accent-cyan)' : '1px solid var(--border-color)',
-              background: scanMode === 'git' ? 'rgba(6, 182, 212, 0.12)' : 'rgba(0,0,0,0.2)',
+              padding: '18px',
+              borderRadius: '8px',
+              border: scanMode === 'git' ? 'var(--border-thick)' : 'var(--border-thin)',
+              background: scanMode === 'git' ? 'var(--accent-cyan)' : '#FFFFFF',
+              boxShadow: scanMode === 'git' ? 'var(--shadow-brutal)' : 'none',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '12px'
+              gap: '14px',
+              transition: 'all 0.15s ease'
             }}
           >
-            <GitBranch size={24} color={scanMode === 'git' ? 'var(--accent-cyan)' : 'var(--text-dim)'} />
+            <i className="fa-solid fa-code-branch" style={{ fontSize: '1.8rem', color: '#000000' }}></i>
             <div>
-              <div style={{ fontWeight: 700, color: scanMode === 'git' ? 'var(--accent-cyan)' : 'var(--text-main)' }}>
-                🔗 Repositório Git (URL)
+              <div style={{ fontWeight: 800, fontFamily: 'var(--font-title)', color: '#000000', fontSize: '1rem' }}>
+                Repositório Git (URL)
               </div>
-              <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+              <div style={{ fontSize: '0.82rem', color: '#000000', fontWeight: 500 }}>
                 Cole a URL pública ou privada do GitHub/GitLab para clonar e auditar.
               </div>
             </div>
@@ -259,38 +257,39 @@ export const ScannerTab: React.FC = () => {
 
         {/* Input Area: Modo ZIP */}
         {scanMode === 'zip' && (
-          <div style={{ marginBottom: '20px' }}>
+          <div style={{ marginBottom: '24px' }}>
             <div
               onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
               onDragLeave={() => setIsDragOver(false)}
               onDrop={handleFileDrop}
               style={{
-                border: isDragOver ? '2px dashed var(--accent-indigo)' : '2px dashed var(--border-color)',
-                background: isDragOver ? 'rgba(99, 102, 241, 0.08)' : 'rgba(0,0,0,0.2)',
-                borderRadius: '12px',
-                padding: '32px 24px',
+                border: isDragOver ? '3px dashed #000000' : 'var(--border-thick)',
+                background: isDragOver ? 'var(--accent-yellow)' : '#F9FAFB',
+                borderRadius: '8px',
+                padding: '36px 24px',
                 textAlign: 'center',
                 cursor: 'pointer',
-                transition: 'all 0.2s ease'
+                boxShadow: 'var(--shadow-brutal-sm)',
+                transition: 'all 0.15s ease'
               }}
               onClick={() => document.getElementById('zip-file-input')?.click()}
             >
-              <Upload size={32} color="var(--accent-indigo)" style={{ marginBottom: '12px' }} />
+              <i className="fa-solid fa-upload" style={{ fontSize: '2.4rem', color: '#000000', marginBottom: '14px' }}></i>
               {selectedFile ? (
                 <div>
-                  <div style={{ fontWeight: 700, color: 'var(--accent-emerald)', fontSize: '1rem' }}>
-                    ✓ Arquivo Selecionado: {selectedFile.name}
+                  <div style={{ fontWeight: 800, fontFamily: 'var(--font-title)', color: 'var(--accent-emerald)', fontSize: '1.1rem' }}>
+                    <i className="fa-solid fa-circle-check"></i> Arquivo Selecionado: {selectedFile.name}
                   </div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '6px', fontWeight: 600 }}>
                     Tamanho: {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB • Clique ou solte outro arquivo para substituir.
                   </div>
                 </div>
               ) : (
                 <div>
-                  <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>
+                  <div style={{ fontWeight: 800, fontFamily: 'var(--font-title)', fontSize: '1.05rem', color: '#000000' }}>
                     Arraste e solte o arquivo <strong>.zip</strong> da sua aplicação aqui
                   </div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '6px', fontWeight: 500 }}>
                     ou clique para procurar no seu computador
                   </div>
                 </div>
@@ -308,9 +307,11 @@ export const ScannerTab: React.FC = () => {
 
         {/* Input Area: Modo Git */}
         {scanMode === 'git' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px', background: 'rgba(0,0,0,0.2)', padding: '16px', borderRadius: '10px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '24px', background: '#ECFEFF', padding: '18px', borderRadius: '8px', border: 'var(--border-thin)' }}>
             <div>
-              <label style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '4px' }}>URL do Repositório Git:</label>
+              <label style={{ fontSize: '0.88rem', fontWeight: 800, fontFamily: 'var(--font-title)', display: 'block', marginBottom: '6px' }}>
+                URL do Repositório Git:
+              </label>
               <input
                 type="text"
                 value={gitUrl}
@@ -320,9 +321,11 @@ export const ScannerTab: React.FC = () => {
                 className="code-font"
               />
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '12px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '14px' }}>
               <div>
-                <label style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Branch:</label>
+                <label style={{ fontSize: '0.88rem', fontWeight: 800, fontFamily: 'var(--font-title)', display: 'block', marginBottom: '6px' }}>
+                  Branch:
+                </label>
                 <input
                   type="text"
                   value={gitBranch}
@@ -332,7 +335,9 @@ export const ScannerTab: React.FC = () => {
                 />
               </div>
               <div>
-                <label style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Token de Acesso Pessoal (Para Repositórios Privados):</label>
+                <label style={{ fontSize: '0.88rem', fontWeight: 800, fontFamily: 'var(--font-title)', display: 'block', marginBottom: '6px' }}>
+                  Token de Acesso Pessoal (Para Repositórios Privados):
+                </label>
                 <input
                   type="password"
                   value={gitToken}
@@ -346,26 +351,26 @@ export const ScannerTab: React.FC = () => {
         )}
 
         {/* Configurações Adicionais de IA */}
-        <div style={{ background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '10px', border: '1px solid var(--border-color)', marginBottom: '20px' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+        <div style={{ background: '#FFFBEB', padding: '18px', borderRadius: '8px', border: 'var(--border-thin)', marginBottom: '24px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>Provedor IA:</label>
-                <select value={provider} onChange={(e) => setProvider(e.target.value as any)}>
+                <label style={{ fontSize: '0.88rem', fontWeight: 800, fontFamily: 'var(--font-title)' }}>Provedor IA:</label>
+                <select value={provider} onChange={(e) => setProvider(e.target.value as any)} style={{ fontWeight: 700 }}>
                   <option value="gemini">Google Gemini (gemini-3.5-flash com SDK)</option>
                   <option value="ollama">Ollama (Detector Automático de Modelos)</option>
                 </select>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <input
                   type="checkbox"
                   id="use-ai-check"
                   checked={useAi}
                   onChange={(e) => setUseAi(e.target.checked)}
-                  style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                  style={{ width: '18px', height: '18px', cursor: 'pointer' }}
                 />
-                <label htmlFor="use-ai-check" style={{ fontSize: '0.85rem', cursor: 'pointer', fontWeight: 500 }}>
+                <label htmlFor="use-ai-check" style={{ fontSize: '0.88rem', cursor: 'pointer', fontWeight: 700, fontFamily: 'var(--font-title)' }}>
                   Habilitar Resumo Executivo da IA
                 </label>
               </div>
@@ -374,17 +379,19 @@ export const ScannerTab: React.FC = () => {
             {/* Input da Chave do Gemini */}
             {provider === 'gemini' && (
               <div>
-                <label style={{ fontSize: '0.82rem', fontWeight: 600, display: 'block', marginBottom: '4px', color: 'var(--accent-indigo)' }}>
+                <label style={{ fontSize: '0.85rem', fontWeight: 800, fontFamily: 'var(--font-title)', display: 'block', marginBottom: '6px', color: '#000000' }}>
                   Sua Gemini API Key (Salva no seu navegador):
                 </label>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <Key size={16} style={{ alignSelf: 'center', color: 'var(--text-dim)' }} />
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <div style={{ padding: '10px 12px', background: '#FFFFFF', border: 'var(--border-thick)', borderRadius: '6px', display: 'flex', alignItems: 'center' }}>
+                    <i className="fa-solid fa-key" style={{ color: '#000000' }}></i>
+                  </div>
                   <input
                     type="password"
                     placeholder="Cole sua API Key do Google Gemini (ex: AIzaSy...)"
                     value={apiKey}
                     onChange={(e) => handleApiKeyChange(e.target.value)}
-                    style={{ flex: 1, fontSize: '0.85rem' }}
+                    style={{ flex: 1, fontSize: '0.88rem' }}
                   />
                 </div>
               </div>
@@ -395,44 +402,44 @@ export const ScannerTab: React.FC = () => {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
                 {/* INSTRUÇÕES DO LOCALTUNNEL */}
-                <div style={{ background: 'rgba(6, 182, 212, 0.08)', border: '1px solid var(--accent-cyan)', borderRadius: '8px', padding: '12px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: 'var(--accent-cyan)', fontWeight: 700, fontSize: '0.9rem' }}>
-                    <Globe size={18} /> Como conectar a nuvem ao seu Ollama local?
+                <div style={{ background: '#FFFFFF', border: 'var(--border-thick)', borderRadius: '8px', padding: '14px', boxShadow: 'var(--shadow-brutal-sm)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px', color: '#000000', fontWeight: 800, fontFamily: 'var(--font-title)', fontSize: '0.92rem' }}>
+                    <i className="fa-solid fa-globe" style={{ color: 'var(--accent-cyan)' }}></i> Como conectar a nuvem ao seu Ollama local?
                   </div>
-                  <div style={{ fontSize: '0.85rem', color: 'var(--text-main)', lineHeight: '1.6' }}>
+                  <div style={{ fontSize: '0.85rem', color: '#000000', lineHeight: '1.6', fontWeight: 500 }}>
                     Abra o <strong>Terminal ou PowerShell</strong> no seu computador e cole o comando abaixo:
                   </div>
-                  <div className="code-font" style={{ background: 'rgba(0,0,0,0.5)', padding: '10px 14px', borderRadius: '6px', margin: '8px 0', display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--accent-emerald)', border: '1px solid var(--border-color)' }}>
-                    <Terminal size={16} /> <span>npx localtunnel --port 11434</span>
+                  <div className="code-font" style={{ background: '#000000', color: 'var(--accent-yellow)', padding: '10px 14px', borderRadius: '6px', margin: '8px 0', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 700, border: '2px solid #000' }}>
+                    <i className="fa-solid fa-terminal"></i> <span>npx localtunnel --port 11434</span>
                   </div>
-                  <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                  <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', fontWeight: 500 }}>
                     Ele vai gerar um link (ex: <code>https://algo.loca.lt</code>). Copie e cole esse link no campo <strong>Base URL</strong> logo abaixo e clique em Detectar!
                   </div>
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 2.5fr', gap: '12px' }}>
                   <div>
-                    <label style={{ fontSize: '0.82rem', fontWeight: 600, display: 'block', marginBottom: '4px', color: 'var(--accent-cyan)' }}>
-                      Base URL (Cole o link do LocalTunnel aqui):
+                    <label style={{ fontSize: '0.85rem', fontWeight: 800, fontFamily: 'var(--font-title)', display: 'block', marginBottom: '6px' }}>
+                      Base URL (Link do LocalTunnel):
                     </label>
                     <input
                       type="text"
                       placeholder="https://sua-url.loca.lt"
                       value={ollamaUrl}
                       onChange={(e) => handleOllamaUrlChange(e.target.value)}
-                      style={{ width: '100%', fontSize: '0.85rem' }}
+                      style={{ width: '100%', fontSize: '0.88rem' }}
                     />
                   </div>
                   <div>
-                    <label style={{ fontSize: '0.82rem', fontWeight: 600, display: 'block', marginBottom: '4px', color: 'var(--accent-cyan)' }}>
+                    <label style={{ fontSize: '0.85rem', fontWeight: 800, fontFamily: 'var(--font-title)', display: 'block', marginBottom: '6px' }}>
                       Modelo Selecionado:
                     </label>
-                    <div style={{ display: 'flex', gap: '8px' }}>
+                    <div style={{ display: 'flex', gap: '10px' }}>
                       {detectedOllamaModels.length > 0 ? (
                         <select
                           value={ollamaModel}
                           onChange={(e) => setOllamaModel(e.target.value)}
-                          style={{ flex: 1, fontWeight: 600, color: 'var(--accent-cyan)' }}
+                          style={{ flex: 1, fontWeight: 700 }}
                         >
                           {detectedOllamaModels.map((m) => (
                             <option key={m} value={m}>{m} (Instalado)</option>
@@ -451,27 +458,27 @@ export const ScannerTab: React.FC = () => {
                         className="btn-secondary"
                         onClick={() => autoDetectOllama(ollamaUrl)}
                         disabled={isDetectingOllama}
-                        style={{ whiteSpace: 'nowrap', padding: '0 12px' }}
+                        style={{ whiteSpace: 'nowrap', padding: '0 14px' }}
                       >
-                        {isDetectingOllama ? <RefreshCw className="animate-spin" size={14} /> : <Database size={14} />} Detectar
+                        {isDetectingOllama ? <i className="fa-solid fa-rotate fa-spin"></i> : <i className="fa-solid fa-database"></i>} Detectar
                       </button>
                     </div>
                   </div>
                 </div>
 
                 {/* Exibe erro ou sucesso de detecção */}
-                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                <div style={{ fontSize: '0.82rem', fontWeight: 600 }}>
                   {ollamaDetectError ? (
-                    <div style={{ color: 'var(--accent-rose)', display: 'flex', gap: '6px', alignItems: 'flex-start' }}>
-                      <AlertTriangle size={14} style={{ flexShrink: 0, marginTop: '2px' }} />
+                    <div style={{ color: 'var(--accent-rose)', display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+                      <i className="fa-solid fa-triangle-exclamation" style={{ marginTop: '2px' }}></i>
                       <span>{ollamaDetectError} <br />Siga os passos do LocalTunnel no quadro azul acima para liberar o acesso!</span>
                     </div>
                   ) : detectedOllamaModels.length > 0 ? (
-                    <span style={{ color: 'var(--accent-emerald)', fontWeight: 600, display: 'flex', gap: '6px', alignItems: 'center' }}>
-                      <CheckCircle2 size={14} /> {detectedOllamaModels.length} modelo(s) encontrado(s)! Tudo pronto.
+                    <span style={{ color: 'var(--accent-emerald)', fontWeight: 800, display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <i className="fa-solid fa-circle-check"></i> {detectedOllamaModels.length} modelo(s) encontrado(s)! Tudo pronto.
                     </span>
                   ) : (
-                    <span>Insira sua URL do LocalTunnel e clique em Detectar para listar seus modelos.</span>
+                    <span style={{ color: 'var(--text-muted)' }}>Insira sua URL do LocalTunnel e clique em Detectar para listar seus modelos.</span>
                   )}
                 </div>
               </div>
@@ -484,9 +491,9 @@ export const ScannerTab: React.FC = () => {
           className="btn-primary"
           onClick={handleExecuteScan}
           disabled={isScanning}
-          style={{ width: '100%', justifyContent: 'center', padding: '14px', fontSize: '1rem' }}
+          style={{ width: '100%', justifyContent: 'center', padding: '16px', fontSize: '1rem' }}
         >
-          {isScanning ? <RefreshCw className="animate-spin" size={20} /> : <ArrowRight size={20} />}
+          {isScanning ? <i className="fa-solid fa-rotate fa-spin"></i> : <i className="fa-solid fa-arrow-right"></i>}
           {isScanning
             ? (scanMode === 'zip' ? 'Descompactando & Auditando Código...' : 'Clonando Git & Auditando Código...')
             : 'Iniciar Auditoria de Conformidade'}
@@ -495,9 +502,11 @@ export const ScannerTab: React.FC = () => {
 
       {/* Exibição de Erro */}
       {error && (
-        <div className="glass-card" style={{ padding: '16px', borderLeft: '4px solid var(--accent-rose)', marginBottom: '24px' }}>
-          <div style={{ color: 'var(--accent-rose)', fontWeight: 700, marginBottom: '4px' }}>Erro ao Executar Auditoria</div>
-          <div style={{ fontSize: '0.88rem', color: 'var(--text-muted)', whiteSpace: 'pre-wrap' }}>{error}</div>
+        <div className="brutal-card" style={{ padding: '20px', background: '#FEE2E2', borderLeft: '8px solid var(--accent-rose)', marginBottom: '24px' }}>
+          <div style={{ color: 'var(--accent-rose)', fontWeight: 800, fontFamily: 'var(--font-title)', fontSize: '1.1rem', marginBottom: '6px' }}>
+            <i className="fa-solid fa-triangle-exclamation" style={{ marginRight: '8px' }}></i> Erro ao Executar Auditoria
+          </div>
+          <div style={{ fontSize: '0.9rem', color: '#000000', whiteSpace: 'pre-wrap', fontWeight: 500 }}>{error}</div>
         </div>
       )}
 
@@ -505,82 +514,82 @@ export const ScannerTab: React.FC = () => {
       {scanResult && (
         <div>
           {/* Barra de Ações e Exportação de Relatórios */}
-          <div className="glass-card" style={{ padding: '16px 24px', marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-            <div style={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Download color="var(--accent-cyan)" size={20} />
+          <div className="brutal-card" style={{ padding: '20px 24px', marginBottom: '24px', background: '#FFFFFF', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
+            <div style={{ fontWeight: 800, fontFamily: 'var(--font-title)', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <i className="fa-solid fa-download" style={{ color: 'var(--accent-pink)', fontSize: '1.2rem' }}></i>
               <span>Exportar Relatórios GRC:</span>
             </div>
 
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
               <button
                 className="btn-secondary"
                 onClick={() => handleDownloadReport('html')}
                 disabled={isExporting}
-                style={{ fontSize: '0.82rem' }}
+                style={{ fontSize: '0.85rem' }}
               >
-                <FileText size={15} color="var(--accent-emerald)" /> Relatório Executivo (HTML)
+                <i className="fa-solid fa-file-lines" style={{ color: 'var(--accent-emerald)' }}></i> Relatório Executivo (HTML)
               </button>
               <button
                 className="btn-secondary"
                 onClick={() => handleDownloadReport('markdown')}
                 disabled={isExporting}
-                style={{ fontSize: '0.82rem' }}
+                style={{ fontSize: '0.85rem' }}
               >
-                <FileCode size={15} color="var(--accent-indigo)" /> Comentário PR (Markdown)
+                <i className="fa-solid fa-file-code" style={{ color: 'var(--accent-purple)' }}></i> Comentário PR (Markdown)
               </button>
               <button
                 className="btn-secondary"
                 onClick={() => handleDownloadReport('sarif')}
                 disabled={isExporting}
-                style={{ fontSize: '0.82rem' }}
+                style={{ fontSize: '0.85rem' }}
               >
-                <Code size={15} color="var(--accent-amber)" /> GitHub Security (SARIF)
+                <i className="fa-solid fa-code" style={{ color: 'var(--accent-amber)' }}></i> GitHub Security (SARIF)
               </button>
               <button
                 className="btn-secondary"
                 onClick={() => handleDownloadReport('graphml')}
                 disabled={isExporting}
-                style={{ fontSize: '0.82rem' }}
+                style={{ fontSize: '0.85rem' }}
               >
-                <Layers size={15} color="var(--accent-cyan)" /> Grafo de Conhecimento (.graphml)
+                <i className="fa-solid fa-layer-group" style={{ color: 'var(--accent-cyan)' }}></i> Grafo de Conhecimento (.graphml)
               </button>
             </div>
           </div>
 
-          <div style={{ padding: '0 24px 24px 24px', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-            <strong>Dica de Visualização 3D:</strong> Baixe o arquivo <code>.graphml</code> acima e arraste-o para o site <a href="https://noworneverev.github.io/graphrag-visualizer/#/upload" target="_blank" rel="noreferrer" style={{ color: 'var(--accent-cyan)' }}>GraphRAG Visualizer</a> para ver o mapa do seu código!
+          <div style={{ padding: '0 24px 24px 24px', fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 500 }}>
+            <strong>Dica de Visualização 3D:</strong> Baixe o arquivo <code>.graphml</code> acima e arraste-o para o site <a href="https://noworneverev.github.io/graphrag-visualizer/#/upload" target="_blank" rel="noreferrer" style={{ color: '#000000', fontWeight: 800, textDecoration: 'underline' }}>GraphRAG Visualizer</a> para ver o mapa do seu código!
           </div>
 
           {/* Cards com Métricas Gerais */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '24px' }}>
-            <div className="glass-card" style={{ padding: '16px', textAlign: 'center' }}>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Arquivos Analisados</div>
-              <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--accent-cyan)' }}>{scanResult.summary.total_files_scanned}</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '18px', marginBottom: '24px' }}>
+            <div className="brutal-card" style={{ padding: '20px', textAlign: 'center', background: 'var(--accent-cyan)' }}>
+              <div style={{ fontSize: '0.8rem', color: '#000000', textTransform: 'uppercase', fontWeight: 800, fontFamily: 'var(--font-title)' }}>Arquivos Analisados</div>
+              <div style={{ fontSize: '2.2rem', fontWeight: 800, fontFamily: 'var(--font-title)', color: '#000000' }}>{scanResult.summary.total_files_scanned}</div>
             </div>
 
-            <div className="glass-card" style={{ padding: '16px', textAlign: 'center' }}>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Total de Achados</div>
-              <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--accent-rose)' }}>{scanResult.summary.total_findings}</div>
+            <div className="brutal-card" style={{ padding: '20px', textAlign: 'center', background: 'var(--accent-pink)' }}>
+              <div style={{ fontSize: '0.8rem', color: '#FFFFFF', textTransform: 'uppercase', fontWeight: 800, fontFamily: 'var(--font-title)' }}>Total de Achados</div>
+              <div style={{ fontSize: '2.2rem', fontWeight: 800, fontFamily: 'var(--font-title)', color: '#FFFFFF' }}>{scanResult.summary.total_findings}</div>
             </div>
 
-            <div className="glass-card" style={{ padding: '16px', textAlign: 'center' }}>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Nós no Grafo de Código</div>
-              <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--accent-indigo)' }}>{scanResult.summary.graph_summary.total_nodes}</div>
+            <div className="brutal-card" style={{ padding: '20px', textAlign: 'center', background: 'var(--accent-yellow)' }}>
+              <div style={{ fontSize: '0.8rem', color: '#000000', textTransform: 'uppercase', fontWeight: 800, fontFamily: 'var(--font-title)' }}>Nós no Grafo de Código</div>
+              <div style={{ fontSize: '2.2rem', fontWeight: 800, fontFamily: 'var(--font-title)', color: '#000000' }}>{scanResult.summary.graph_summary.total_nodes}</div>
             </div>
 
-            <div className="glass-card" style={{ padding: '16px', textAlign: 'center' }}>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Endpoints Mapeados</div>
-              <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--accent-emerald)' }}>{scanResult.summary.graph_summary.endpoints_count}</div>
+            <div className="brutal-card" style={{ padding: '20px', textAlign: 'center', background: '#FFFFFF' }}>
+              <div style={{ fontSize: '0.8rem', color: '#000000', textTransform: 'uppercase', fontWeight: 800, fontFamily: 'var(--font-title)' }}>Endpoints Mapeados</div>
+              <div style={{ fontSize: '2.2rem', fontWeight: 800, fontFamily: 'var(--font-title)', color: '#000000' }}>{scanResult.summary.graph_summary.endpoints_count}</div>
             </div>
           </div>
 
           {/* Resumo Executivo da IA */}
           {scanResult.summary.ai_executive_summary && (
-            <div className="glass-card" style={{ padding: '24px', borderLeft: '4px solid var(--accent-indigo)', marginBottom: '24px' }}>
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '12px', color: 'var(--accent-indigo)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Cpu size={20} /> Resumo Executivo da IA (gemini-3.5-flash / {ollamaModel})
+            <div className="brutal-card" style={{ padding: '28px', background: '#FFFFFF', borderLeft: '8px solid var(--accent-yellow)', marginBottom: '24px' }}>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: '14px', color: '#000000', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <i className="fa-solid fa-microchip" style={{ color: 'var(--accent-pink)' }}></i> Resumo Executivo da IA (gemini-3.5-flash / {ollamaModel})
               </h3>
-              <div className="code-font" style={{ fontSize: '0.9rem', lineHeight: '1.6', whiteSpace: 'pre-wrap', color: 'var(--text-main)', background: 'rgba(0,0,0,0.3)', padding: '16px', borderRadius: '8px' }}>
+              <div className="code-font" style={{ fontSize: '0.92rem', lineHeight: '1.7', whiteSpace: 'pre-wrap', color: '#000000', background: '#F9FAFB', padding: '20px', borderRadius: '8px', border: 'var(--border-thin)', boxShadow: 'var(--shadow-brutal-sm)' }}>
                 {scanResult.summary.ai_executive_summary}
               </div>
             </div>
@@ -588,24 +597,24 @@ export const ScannerTab: React.FC = () => {
 
           {/* Filtros e Lista de Vulnerabilidades */}
           <div style={{ marginBottom: '24px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <ShieldAlert color="var(--accent-rose)" /> Achados de Conformidade GRC ({filteredFindings.length})
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px', marginBottom: '20px' }}>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 800, textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <i className="fa-solid fa-shield-cat" style={{ color: 'var(--accent-rose)' }}></i> Achados de Conformidade GRC ({filteredFindings.length})
               </h3>
 
               {/* Botões de Filtro */}
-              <div style={{ display: 'flex', gap: '6px' }}>
+              <div style={{ display: 'flex', gap: '8px' }}>
                 {['ALL', 'CRITICAL', 'HIGH', 'MEDIUM', 'LOW'].map((sev) => (
                   <button
                     key={sev}
                     onClick={() => setActiveSeverityFilter(sev)}
                     className="btn-secondary"
                     style={{
-                      padding: '4px 12px',
-                      fontSize: '0.75rem',
-                      background: activeSeverityFilter === sev ? 'var(--accent-indigo)' : 'rgba(255,255,255,0.05)',
-                      color: activeSeverityFilter === sev ? 'white' : 'var(--text-main)',
-                      borderColor: activeSeverityFilter === sev ? 'var(--accent-indigo)' : 'var(--border-color)'
+                      padding: '6px 14px',
+                      fontSize: '0.8rem',
+                      background: activeSeverityFilter === sev ? 'var(--accent-yellow)' : '#FFFFFF',
+                      fontWeight: activeSeverityFilter === sev ? 800 : 600,
+                      boxShadow: activeSeverityFilter === sev ? 'var(--shadow-brutal-sm)' : 'none'
                     }}
                   >
                     {sev}
@@ -616,58 +625,59 @@ export const ScannerTab: React.FC = () => {
 
             {/* Cards de Achados */}
             {filteredFindings.length === 0 ? (
-              <div className="glass-card" style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)' }}>
+              <div className="brutal-card" style={{ padding: '36px', textAlign: 'center', color: 'var(--text-muted)', fontWeight: 600, background: '#FFFFFF' }}>
                 Nenhum achado encontrado para o filtro selecionado ({activeSeverityFilter}).
               </div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
                 {filteredFindings.map((f) => (
                   <div
                     key={f.id}
-                    className="glass-card"
+                    className="brutal-card"
                     style={{
-                      padding: '20px',
-                      borderLeft: f.severity === 'CRITICAL' ? '4px solid var(--accent-rose)' : f.severity === 'HIGH' ? '4px solid var(--accent-amber)' : '4px solid var(--accent-cyan)'
+                      padding: '24px',
+                      background: '#FFFFFF',
+                      borderLeft: f.severity === 'CRITICAL' ? '8px solid var(--accent-rose)' : f.severity === 'HIGH' ? '8px solid var(--accent-amber)' : '8px solid var(--accent-cyan)'
                     }}
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
                       <div>
-                        <span className={`badge badge-${f.severity.toLowerCase()}`} style={{ marginRight: '8px' }}>{f.severity}</span>
-                        <span className="code-font" style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>{f.rule_id}</span>
-                        <h4 style={{ fontSize: '1.05rem', fontWeight: 700, marginTop: '4px' }}>{f.title}</h4>
+                        <span className={`badge badge-${f.severity.toLowerCase()}`} style={{ marginRight: '10px' }}>{f.severity}</span>
+                        <span className="code-font" style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-dim)' }}>{f.rule_id}</span>
+                        <h4 style={{ fontSize: '1.15rem', fontWeight: 800, marginTop: '6px', color: '#000000' }}>{f.title}</h4>
                       </div>
-                      <span className="code-font" style={{ fontSize: '0.8rem', background: 'rgba(255,255,255,0.05)', padding: '4px 10px', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
+                      <span className="code-font" style={{ fontSize: '0.82rem', background: 'var(--accent-yellow)', padding: '6px 12px', borderRadius: '6px', border: 'var(--border-thin)', fontWeight: 700, color: '#000000', boxShadow: '2px 2px 0px #000' }}>
                         {f.location.file_path}:{f.location.line_start}
                       </span>
                     </div>
 
-                    <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginBottom: '12px' }}>
+                    <p style={{ fontSize: '0.92rem', color: '#000000', marginBottom: '14px', fontWeight: 500, lineHeight: 1.5 }}>
                       {f.description}
                     </p>
 
                     {/* Trecho de Código */}
                     {f.location.snippet && (
-                      <div className="code-font" style={{ background: 'rgba(0,0,0,0.5)', padding: '12px', borderRadius: '6px', border: '1px solid var(--border-color)', marginBottom: '12px' }}>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginBottom: '4px' }}>Trecho de Código Afetado:</div>
-                        <code style={{ color: 'var(--accent-cyan)', fontSize: '0.85rem' }}>{f.location.snippet}</code>
+                      <div className="code-font" style={{ background: '#000000', color: '#FFFFFF', padding: '14px', borderRadius: '6px', border: '2px solid #000000', marginBottom: '14px', boxShadow: 'var(--shadow-brutal-sm)' }}>
+                        <div style={{ fontSize: '0.78rem', color: 'var(--accent-yellow)', marginBottom: '4px', fontWeight: 700 }}>Trecho de Código Afetado:</div>
+                        <code style={{ color: '#FFFFFF', fontSize: '0.88rem' }}>{f.location.snippet}</code>
                       </div>
                     )}
 
                     {/* Mapeamentos GRC e Recomendação */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', background: '#F9FAFB', padding: '16px', borderRadius: '8px', border: 'var(--border-thin)' }}>
                       <div>
-                        <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--accent-indigo)', display: 'block', marginBottom: '4px' }}>CONTROLES GRC MAPEADOS:</span>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 800, fontFamily: 'var(--font-title)', color: '#000000', display: 'block', marginBottom: '6px' }}>CONTROLES GRC MAPEADOS:</span>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                           {f.grc_mappings.map((g, i) => (
-                            <div key={i} style={{ fontSize: '0.8rem', color: 'var(--text-main)' }}>
+                            <div key={i} style={{ fontSize: '0.85rem', color: '#000000', fontWeight: 600 }}>
                               <strong>{g.framework} ({g.control_id}):</strong> {g.title}
                             </div>
                           ))}
                         </div>
                       </div>
                       <div>
-                        <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--accent-emerald)', display: 'block', marginBottom: '4px' }}>RECOMENDAÇÃO DE REPARO:</span>
-                        <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>{f.recommendation}</span>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 800, fontFamily: 'var(--font-title)', color: '#000000', display: 'block', marginBottom: '6px' }}>RECOMENDAÇÃO DE REPARO:</span>
+                        <span style={{ fontSize: '0.85rem', color: '#000000', fontWeight: 500 }}>{f.recommendation}</span>
                       </div>
                     </div>
                   </div>
