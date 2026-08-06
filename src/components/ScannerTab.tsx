@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Upload, GitBranch, Search, ShieldAlert, FileCode, CheckCircle2, 
+import {
+  Upload, GitBranch, Search, ShieldAlert, FileCode, CheckCircle2,
   AlertTriangle, RefreshCw, Key, Layers, Cpu, FileArchive, ArrowRight,
   Download, FileText, Code, Globe, Database, Terminal
 } from 'lucide-react';
@@ -34,7 +34,7 @@ export const ScannerTab: React.FC = () => {
     if (savedKey) setApiKey(savedKey);
     const savedOllama = localStorage.getItem('ollama_url');
     if (savedOllama) setOllamaUrl(savedOllama);
-    
+
     // Tenta detectar modelos do Ollama local
     autoDetectOllama(savedOllama || 'http://localhost:11434');
   }, []);
@@ -162,7 +162,7 @@ export const ScannerTab: React.FC = () => {
     setIsExporting(true);
     try {
       const reportData = await api.exportReport(scanResult, format);
-      
+
       let blob: Blob;
       let filename = `relatorio_conformidade_${format}.${format === 'markdown' ? 'md' : format}`;
       if (format === 'graphml') filename = 'grafo_conhecimento_graphrag.graphml';
@@ -196,7 +196,7 @@ export const ScannerTab: React.FC = () => {
 
   return (
     <div style={{ maxWidth: '1100px', margin: '32px auto', padding: '0 16px' }}>
-      
+
       {/* Box de Seleção de Modo */}
       <div className="glass-card" style={{ padding: '24px', marginBottom: '24px' }}>
         <h2 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -224,7 +224,7 @@ export const ScannerTab: React.FC = () => {
             <FileArchive size={24} color={scanMode === 'zip' ? 'var(--accent-indigo)' : 'var(--text-dim)'} />
             <div>
               <div style={{ fontWeight: 700, color: scanMode === 'zip' ? 'var(--accent-indigo)' : 'var(--text-main)' }}>
-                📦 Upload de Arquivo (.zip)
+                Upload de Arquivo (.zip)
               </div>
               <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
                 Envie um arquivo compactado do projeto (C#, Go, Python, Java, TS).
@@ -356,7 +356,7 @@ export const ScannerTab: React.FC = () => {
                   <option value="ollama">Ollama (Detector Automático de Modelos)</option>
                 </select>
               </div>
-              
+
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <input
                   type="checkbox"
@@ -393,7 +393,7 @@ export const ScannerTab: React.FC = () => {
             {/* Seleção e Detecção do Ollama */}
             {provider === 'ollama' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                
+
                 {/* INSTRUÇÕES DO LOCALTUNNEL */}
                 <div style={{ background: 'rgba(6, 182, 212, 0.08)', border: '1px solid var(--accent-cyan)', borderRadius: '8px', padding: '12px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: 'var(--accent-cyan)', fontWeight: 700, fontSize: '0.9rem' }}>
@@ -487,8 +487,8 @@ export const ScannerTab: React.FC = () => {
           style={{ width: '100%', justifyContent: 'center', padding: '14px', fontSize: '1rem' }}
         >
           {isScanning ? <RefreshCw className="animate-spin" size={20} /> : <ArrowRight size={20} />}
-          {isScanning 
-            ? (scanMode === 'zip' ? 'Descompactando & Auditando Código...' : 'Clonando Git & Auditando Código...') 
+          {isScanning
+            ? (scanMode === 'zip' ? 'Descompactando & Auditando Código...' : 'Clonando Git & Auditando Código...')
             : 'Iniciar Auditoria de Conformidade'}
         </button>
       </div>
@@ -546,7 +546,7 @@ export const ScannerTab: React.FC = () => {
               </button>
             </div>
           </div>
-          
+
           <div style={{ padding: '0 24px 24px 24px', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
             <strong>Dica de Visualização 3D:</strong> Baixe o arquivo <code>.graphml</code> acima e arraste-o para o site <a href="https://noworneverev.github.io/graphrag-visualizer/#/upload" target="_blank" rel="noreferrer" style={{ color: 'var(--accent-cyan)' }}>GraphRAG Visualizer</a> para ver o mapa do seu código!
           </div>
